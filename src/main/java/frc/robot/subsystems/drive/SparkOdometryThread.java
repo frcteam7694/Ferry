@@ -14,7 +14,7 @@
 package frc.robot.subsystems.drive;
 
 import com.revrobotics.REVLibError;
-import com.revrobotics.spark.SparkBase;
+import com.revrobotics.spark.SparkMax;
 import edu.wpi.first.wpilibj.Notifier;
 import edu.wpi.first.wpilibj.RobotController;
 import java.util.ArrayList;
@@ -30,7 +30,7 @@ import java.util.function.DoubleSupplier;
  * all measurements in the sample are valid.
  */
 public class SparkOdometryThread {
-  private final List<SparkBase> sparks = new ArrayList<>();
+  private final List<SparkMax> sparks = new ArrayList<>();
   private final List<DoubleSupplier> sparkSignals = new ArrayList<>();
   private final List<DoubleSupplier> genericSignals = new ArrayList<>();
   private final List<Queue<Double>> sparkQueues = new ArrayList<>();
@@ -58,7 +58,7 @@ public class SparkOdometryThread {
   }
 
   /** Registers a Spark signal to be read from the thread. */
-  public Queue<Double> registerSignal(SparkBase spark, DoubleSupplier signal) {
+  public Queue<Double> registerSignal(SparkMax spark, DoubleSupplier signal) {
     Queue<Double> queue = new ArrayBlockingQueue<>(20);
     Drive.odometryLock.lock();
     try {
