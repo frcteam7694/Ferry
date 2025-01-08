@@ -82,6 +82,7 @@ task(replayWatch, type: JavaExec) {
 // Defining my dependencies. In this case, WPILib (+ friends), and vendor libraries.
 // Also defines JUnit 4.
 dependencies {
+    implementation 'org.jetbrains:annotations:23.0.0'
     annotationProcessor wpi.java.deps.wpilibAnnotations()
     implementation wpi.java.deps.wpilib()
     implementation wpi.java.vendor.java()
@@ -118,7 +119,7 @@ test {
 // AdvantageKit log replay from the command line. Set the
 // value to "true" to enable the sim GUI by default (this
 // is the standard WPILib behavior).
-wpi.sim.addGui().defaultEnabled = true
+wpi.sim.addGui().defaultEnabled = false
 wpi.sim.addDriverstation()
 
 // Setting up my Jar File. In this case, adding all libraries into the main jar ('fat jar')

@@ -13,16 +13,22 @@
 
 package frc.robot;
 
+import static frc.robot.subsystems.vision.VisionConstants.*;
+
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.commands.DriveCommands;
 import frc.robot.subsystems.drive.*;
+import frc.robot.subsystems.vision.Vision;
+import frc.robot.subsystems.vision.VisionIO;
+import frc.robot.subsystems.vision.VisionIOLimelight;
+import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -33,15 +39,17 @@ import frc.robot.subsystems.drive.*;
 public class RobotContainer {
   // Subsystems
   private final Drive drive;
+  @Nullable private final Vision vision;
 
   // Controller
   private final CommandXboxController controller = new CommandXboxController(0);
 
   // Dashboard inputs
-  //  private final LoggedDashboardChooser<Command> autoChooser;
+  //    private final LoggedDashboardChooser<Command> autoChooser;
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
+    if (!Constants.useVision) vision = null;
     switch (Constants.currentMode) {
       case REAL:
         // Real robot, instantiate hardware IO implementations
@@ -52,6 +60,12 @@ public class RobotContainer {
                 new ModuleIOSpark(1),
                 new ModuleIOSpark(2),
                 new ModuleIOSpark(3));
+        if (Constants.useVision) {
+          vision =
+              new Vision(
+                  drive::addVisionMeasurement,
+                  new VisionIOLimelight(camera0Name, drive::getRotation));
+        }
         break;
 
       case SIM:
@@ -63,6 +77,12 @@ public class RobotContainer {
                 new ModuleIOSim(),
                 new ModuleIOSim(),
                 new ModuleIOSim());
+        if (Constants.useVision) {
+          vision =
+              new Vision(
+                  drive::addVisionMeasurement,
+                  new VisionIOPhotonVisionSim(camera0Name, robotToCamera0, drive::getPose));
+        }
         break;
 
       default:
@@ -74,6 +94,10 @@ public class RobotContainer {
                 new ModuleIO() {},
                 new ModuleIO() {},
                 new ModuleIO() {});
+
+        if (Constants.useVision) {
+          vision = new Vision(drive::addVisionMeasurement, new VisionIO() {}, new VisionIO() {});
+        }
         break;
     }
 
@@ -148,7 +172,7 @@ public class RobotContainer {
    * @return the command to run in autonomous
    */
   public Command getAutonomousCommand() {
-    return new InstantCommand(() -> {});
+    return Commands.none();
     //    return autoChooser.get();
   }
 }
