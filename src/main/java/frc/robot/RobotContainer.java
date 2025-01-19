@@ -15,10 +15,11 @@ package frc.robot;
 
 import static frc.robot.subsystems.vision.VisionConstants.*;
 
-import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
@@ -28,7 +29,6 @@ import frc.robot.subsystems.vision.Vision;
 import frc.robot.subsystems.vision.VisionIO;
 import frc.robot.subsystems.vision.VisionIOLimelight;
 import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -39,7 +39,7 @@ import org.jetbrains.annotations.Nullable;
 public class RobotContainer {
   // Subsystems
   private final Drive drive;
-  @Nullable private final Vision vision;
+  private final Vision vision;
 
   // Controller
   private final CommandXboxController controller = new CommandXboxController(0);
@@ -49,7 +49,6 @@ public class RobotContainer {
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
-    if (!Constants.useVision) vision = null;
     switch (Constants.currentMode) {
       case REAL:
         // Real robot, instantiate hardware IO implementations
@@ -60,12 +59,10 @@ public class RobotContainer {
                 new ModuleIOSpark(1),
                 new ModuleIOSpark(2),
                 new ModuleIOSpark(3));
-        if (Constants.useVision) {
-          vision =
-              new Vision(
-                  drive::addVisionMeasurement,
-                  new VisionIOLimelight(camera0Name, drive::getRotation));
-        }
+        vision =
+            new Vision(
+                drive::addVisionMeasurement,
+                new VisionIOLimelight(camera0Name, drive::getRotation));
         break;
 
       case SIM:
@@ -77,12 +74,10 @@ public class RobotContainer {
                 new ModuleIOSim(),
                 new ModuleIOSim(),
                 new ModuleIOSim());
-        if (Constants.useVision) {
-          vision =
-              new Vision(
-                  drive::addVisionMeasurement,
-                  new VisionIOPhotonVisionSim(camera0Name, robotToCamera0, drive::getPose));
-        }
+        vision =
+            new Vision(
+                drive::addVisionMeasurement,
+                new VisionIOPhotonVisionSim(camera0Name, robotToCamera0, drive::getPose));
         break;
 
       default:
@@ -155,15 +150,26 @@ public class RobotContainer {
     controller.x().onTrue(Commands.runOnce(drive::stopWithX, drive));
 
     // Reset gyro to 0° when B button is pressed
-    controller
-        .b()
-        .onTrue(
-            Commands.runOnce(
-                    () ->
-                        drive.setPose(
-                            new Pose2d(drive.getPose().getTranslation(), new Rotation2d())),
-                    drive)
-                .ignoringDisable(true));
+    controller.b().onTrue(Commands.runOnce(drive::resetGyro, drive).ignoringDisable(true));
+  }
+
+  public void setPosFromLL(int index) {
+    Pose3d pos = vision.getPose(index);
+    if (pos == null) return;
+    drive.setPose(pos.toPose2d());
+  }
+
+  public void sometimesReset() {
+    for (int i = 0; i < 2; i++) {
+      Pose3d pos = vision.getPose(i);
+      if (pos == null) break;
+      double diff =
+          Math.abs(drive.getRotation().getDegrees() - pos.toPose2d().getRotation().getDegrees());
+      SmartDashboard.putNumber("diff", diff);
+      if (diff < 1 && pos.getX() > .1 && pos.getY() > .1) {
+        drive.setTranslation(pos.toPose2d());
+      }
+    }
   }
 
   /**
