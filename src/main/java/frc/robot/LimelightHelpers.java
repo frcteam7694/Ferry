@@ -581,8 +581,8 @@ public class LimelightHelpers {
      */
     static boolean profileJSON = false;
 
-    static final String sanitizeName(String name) {
-        if (name == "" || name == null) {
+    static String sanitizeName(String name) {
+        if (name == null || name.isBlank()) {
             return "limelight";
         }
         return name;
@@ -698,9 +698,7 @@ public class LimelightHelpers {
         int valsPerFiducial = 7;
         int expectedTotalVals = 11 + valsPerFiducial * tagCount;
 
-        if (poseArray.length != expectedTotalVals) {
-            // Don't populate fiducials
-        } else {
+        if (poseArray.length == expectedTotalVals) { // Otherwise Don't populate fiducials
             for (int i = 0; i < tagCount; i++) {
                 int baseIndex = 11 + (i * valsPerFiducial);
                 int id = (int) poseArray[baseIndex];
@@ -1097,38 +1095,6 @@ public class LimelightHelpers {
         return getLimelightNTString(limelightName, "json");
     }
 
-    /**
-     * Switch to getBotPose
-     *
-     * @param limelightName
-     * @return
-     */
-    @Deprecated
-    public static double[] getBotpose(String limelightName) {
-        return getLimelightNTDoubleArray(limelightName, "botpose");
-    }
-
-    /**
-     * Switch to getBotPose_wpiRed
-     *
-     * @param limelightName
-     * @return
-     */
-    @Deprecated
-    public static double[] getBotpose_wpiRed(String limelightName) {
-        return getLimelightNTDoubleArray(limelightName, "botpose_wpired");
-    }
-
-    /**
-     * Switch to getBotPose_wpiBlue
-     *
-     * @param limelightName
-     * @return
-     */
-    @Deprecated
-    public static double[] getBotpose_wpiBlue(String limelightName) {
-        return getLimelightNTDoubleArray(limelightName, "botpose_wpiblue");
-    }
 
     public static double[] getBotPose(String limelightName) {
         return getLimelightNTDoubleArray(limelightName, "botpose");
@@ -1492,7 +1458,7 @@ public class LimelightHelpers {
 
     /**
      * Sets the 3D point-of-interest offset for the current fiducial pipeline.
-     * https://docs.limelightvision.io/docs/docs-limelight/pipeline-apriltag/apriltag-3d#point-of-interest-tracking
+     * <a href="https://docs.limelightvision.io/docs/docs-limelight/pipeline-apriltag/apriltag-3d#point-of-interest-tracking">More info on LL docs</a>
      *
      * @param limelightName Name/identifier of the Limelight
      * @param x             X offset in meters
@@ -1599,9 +1565,7 @@ public class LimelightHelpers {
      */
     public static CompletableFuture<Boolean> takeSnapshot(String tableName, String snapshotName) {
         return CompletableFuture.supplyAsync(
-                () -> {
-                    return SYNCH_TAKESNAPSHOT(tableName, snapshotName);
-                });
+                () -> SYNCH_TAKESNAPSHOT(tableName, snapshotName));
     }
 
     private static boolean SYNCH_TAKESNAPSHOT(String tableName, String snapshotName) {
@@ -1609,7 +1573,7 @@ public class LimelightHelpers {
         try {
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod("GET");
-            if (snapshotName != null && snapshotName != "") {
+            if (snapshotName != null && !snapshotName.isBlank()) {
                 connection.setRequestProperty("snapname", snapshotName);
             }
 

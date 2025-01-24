@@ -36,16 +36,16 @@ public class Module {
         this.index = index;
         driveDisconnectedAlert =
                 new Alert(
-                        "Disconnected drive motor on module " + Integer.toString(index) + ".",
+                        "Disconnected drive motor on module " + index + ".",
                         AlertType.kError);
         turnDisconnectedAlert =
                 new Alert(
-                        "Disconnected turn motor on module " + Integer.toString(index) + ".", AlertType.kError);
+                        "Disconnected turn motor on module " + index + ".", AlertType.kError);
     }
 
     public void periodic() {
         io.updateInputs(inputs);
-        Logger.processInputs("Drive/Module" + Integer.toString(index), inputs);
+        Logger.processInputs("Drive/Module" + index, inputs);
 
         // Calculate positions for odometry
         int sampleCount = inputs.odometryTimestamps.length; // All signals are sampled together

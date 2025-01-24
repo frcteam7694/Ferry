@@ -53,7 +53,7 @@ public class SparkOdometryThread {
     }
 
     public void start() {
-        if (timestampQueues.size() > 0) {
+        if (!timestampQueues.isEmpty()) {
             notifier.startPeriodic(1.0 / DriveConstants.odometryFrequency);
         }
     }
@@ -128,8 +128,8 @@ public class SparkOdometryThread {
                 for (int i = 0; i < genericSignals.size(); i++) {
                     genericQueues.get(i).offer(genericSignals.get(i).getAsDouble());
                 }
-                for (int i = 0; i < timestampQueues.size(); i++) {
-                    timestampQueues.get(i).offer(timestamp);
+                for (Queue<Double> queue : timestampQueues) {
+                    queue.offer(timestamp);
                 }
             }
         } finally {
