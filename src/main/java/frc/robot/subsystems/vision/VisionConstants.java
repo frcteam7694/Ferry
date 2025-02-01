@@ -13,16 +13,29 @@
 
 package frc.robot.subsystems.vision;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
-import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 public class VisionConstants {
   // AprilTag layout
-  public static AprilTagFieldLayout aprilTagLayout =
-      AprilTagFieldLayout.loadField(AprilTagFields.kDefaultField);
+  public static AprilTagFieldLayout aprilTagLayout;
+
+  static {
+    try {
+      aprilTagLayout = getFieldFromFile(Path.of("/home/lvuser/deploy/layout.json"));
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
 
   // Camera names, must match names configured on coprocessor
   public static String pv1c1 = "pv1c1";
@@ -49,11 +62,24 @@ public class VisionConstants {
   // (Adjust to trust some cameras more than others)
   public static double[] cameraStdDevFactors =
       new double[] {
-        1.0 // Camera 0
+        1.0, // Camera 0
+        1.0 // Camera 1
       };
 
   // Multipliers to apply for MegaTag 2 observations
   public static double linearStdDevMegatag2Factor = 0.5; // More stable than full 3D solve
   public static double angularStdDevMegatag2Factor =
       Double.POSITIVE_INFINITY; // No rotation data available
+
+  private static AprilTagFieldLayout getFieldFromFile(Path resourcePath) throws IOException {
+    InputStream stream = Files.newInputStream(resourcePath);
+    InputStreamReader reader = new InputStreamReader(stream, StandardCharsets.UTF_8);
+
+    try {
+      return (AprilTagFieldLayout)
+          (new ObjectMapper()).readerFor(AprilTagFieldLayout.class).readValue(reader);
+    } catch (IOException var4) {
+      throw new IOException("Failed to load AprilTagFieldLayout: " + resourcePath);
+    }
+  }
 }
