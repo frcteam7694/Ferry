@@ -13,8 +13,7 @@
 
 package frc.robot;
 
-import static frc.robot.subsystems.vision.VisionConstants.camera0Name;
-import static frc.robot.subsystems.vision.VisionConstants.robotToCamera0;
+import static frc.robot.subsystems.vision.VisionConstants.*;
 
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -26,7 +25,10 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.commands.DriveCommands;
 import frc.robot.subsystems.drive.*;
-import frc.robot.subsystems.vision.*;
+import frc.robot.subsystems.vision.Vision;
+import frc.robot.subsystems.vision.VisionIO;
+import frc.robot.subsystems.vision.VisionIOPhotonVision;
+import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -61,7 +63,8 @@ public class RobotContainer {
             new Vision(
                 drive::getRotation,
                 drive::addVisionMeasurement,
-                new VisionIOPhotonVision(camera0Name, ));
+                new VisionIOPhotonVision(pv1c1, pv1c1Pos),
+                new VisionIOPhotonVision(pv1c2, pv1c2Pos));
         break;
 
       case SIM:
@@ -77,7 +80,8 @@ public class RobotContainer {
             new Vision(
                 drive::getRotation,
                 drive::addVisionMeasurement,
-                new VisionIOPhotonVisionSim(camera0Name, robotToCamera0, drive::getPose));
+                new VisionIOPhotonVisionSim(pv1c1, pv1c1Pos, drive::getPose),
+                new VisionIOPhotonVisionSim(pv1c2, pv1c2Pos, drive::getPose));
         break;
 
       default:
@@ -90,12 +94,14 @@ public class RobotContainer {
                 new ModuleIO() {},
                 new ModuleIO() {});
 
-        vision =
-            new Vision(
-                drive::getRotation,
-                drive::addVisionMeasurement,
-                new VisionIO() {},
-                new VisionIO() {});
+        if (Constants.useVision) {
+          vision =
+              new Vision(
+                  drive::getRotation,
+                  drive::addVisionMeasurement,
+                  new VisionIO() {},
+                  new VisionIO() {});
+        }
         break;
     }
 
