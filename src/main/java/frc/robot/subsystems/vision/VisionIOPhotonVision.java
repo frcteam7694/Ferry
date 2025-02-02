@@ -64,8 +64,9 @@ public class VisionIOPhotonVision implements VisionIO {
         Transform3d bestTagToCamera = target.bestCameraToTarget;
         Pose3d bestRobotPose =
             tagPose.plus(bestTagToCamera.inverse()).plus(robotToCamera.inverse());
-        Transform3d altTagToCamera = target.altCameraToTarget;
-        Pose3d altRobotPose = tagPose.plus(altTagToCamera.inverse()).plus(robotToCamera.inverse());
+        //        Transform3d altTagToCamera = target.altCameraToTarget;
+        //        Pose3d altRobotPose =
+        // tagPose.plus(altTagToCamera.inverse()).plus(robotToCamera.inverse());
 
         // Add observation
         poseObservations.add(
@@ -76,14 +77,14 @@ public class VisionIOPhotonVision implements VisionIO {
                 1, // Tag count
                 bestTagToCamera.getTranslation().getNorm(), // Average tag distance
                 PoseObservationType.PHOTONVISION)); // Observation type
-        poseObservations.add(
-            new PoseObservation(
-                result.getTimestampSeconds(), // Timestamp
-                altRobotPose, // 3D pose estimate
-                target.poseAmbiguity, // Ambiguity
-                1, // Tag count
-                altTagToCamera.getTranslation().getNorm(), // Average tag distance
-                PoseObservationType.PHOTONVISION)); // Observation type
+        //        poseObservations.add(
+        //            new PoseObservation(
+        //                result.getTimestampSeconds(), // Timestamp
+        //                altRobotPose, // 3D pose estimate
+        //                target.poseAmbiguity, // Ambiguity
+        //                1, // Tag count
+        //                altTagToCamera.getTranslation().getNorm(), // Average tag distance
+        //                PoseObservationType.PHOTONVISION)); // Observation type
       } else {
         inputs.latestTargetObservation = new TargetObservation(new Rotation2d(), new Rotation2d());
       }

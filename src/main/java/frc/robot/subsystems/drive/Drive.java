@@ -285,7 +285,7 @@ public class Drive extends SubsystemBase {
   /** Returns the current odometry pose. */
   @AutoLogOutput(key = "Odometry/Robot")
   public Pose2d getPose() {
-    Pose2d pos = poseEstimator.getEstimatedPosition();
+    Pose2d pos = new Pose2d(poseEstimator.getEstimatedPosition().getTranslation(), getRotation());
     field.setRobotPose(pos);
     SmartDashboard.putData("field", field);
     return pos;

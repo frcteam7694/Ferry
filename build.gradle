@@ -1,3 +1,5 @@
+import java.nio.file.Files
+
 plugins {
     id "java"
     id "edu.wpi.first.GradleRIO" version "2025.1.1"
@@ -142,8 +144,57 @@ tasks.withType(JavaCompile) {
     options.compilerArgs.add '-XDstringConcat=inline'
 }
 
+tasks.register('updateBuildConstants') {
+    doLast {
+        // Run the netsh command to get wlan interfaces info
+        def command = [
+            'netsh',
+            'wlan',
+            'show',
+            'interfaces'
+        ]
+        def process = command.execute()
+        def output = process.text
+
+        // Find the SSID line, and extract the value after ":"
+        def ssidLine = output.readLines().find { it.trim().startsWith("SSID") }
+        def ssid = ssidLine?.split(":")?.getAt(1)?.trim()
+
+        if (ssid) {
+            //            if (ssid == "NWC-Secure") throw new GradleException("Not connected to robot")
+
+            // Path to BuildConstants.java
+            def buildConstantsFile = file('./src/main/java/frc/robot/BuildConstants.java')
+
+            if (!buildConstantsFile.exists()) {
+                throw new GradleException("BuildConstants.java not found!")
+            }
+
+            // Read all lines from BuildConstants.java
+            def lines = buildConstantsFile.readLines()
+
+            // Find the line index to insert before the fourth last line
+            def insertionIndex = lines.size() - 4
+
+            // Create the new line with the SSID value
+            def newLine = "  public static final String DEPLOY_SSID = \"$ssid\";"
+
+            // Insert the new line before the fourth last line
+            lines.add(insertionIndex, newLine)
+
+            // Write the updated lines back to the file
+            Files.write(buildConstantsFile.toPath(), lines.join("\n").getBytes())
+
+            println "Updated BuildConstants.java with SSID: $ssid"
+        } else {
+            throw new GradleException("SSID not found in wlan interfaces")
+        }
+    }
+}
+
 // Create version file
-project.compileJava.dependsOn(createVersionFile)
+project.updateBuildConstants.dependsOn(createVersionFile)
+project.compileJava.dependsOn(updateBuildConstants)
 gversion {
     srcDir       = "src/main/java/"
     classPackage = "frc.robot"

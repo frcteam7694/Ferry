@@ -100,36 +100,20 @@ public class Vision extends SubsystemBase {
       }
 
       // Loop over pose observations
-      for (var observation : inputs[cameraIndex].poseObservations) {
+      for (VisionIO.PoseObservation observation : inputs[cameraIndex].poseObservations) {
         // Check whether to reject pose
-        boolean rejectPose =
-            observation.tagCount() == 0 // Must have at least one tag
-
-                // || (observation.tagCount() == 1
-                //     && observation.ambiguity() > maxAmbiguity) // Cannot be high ambiguity
-
-                // Discard absurd rotations
-                || !RotationUtil.within(
-                    observation.pose().getRotation().toRotation2d(), gyro.get(), maxYawError)
-                || Math.abs(observation.pose().getZ())
-                    > maxZError // Must have realistic Z coordinate
-
-                // Must be within the field boundaries
-                || observation.pose().getX() < 0.0
-                || observation.pose().getX() > aprilTagLayout.getFieldLength()
-                || observation.pose().getY() < 0.0
-                || observation.pose().getY() > aprilTagLayout.getFieldWidth();
+        boolean acceptPose = shouldAccept(observation);
 
         // Add pose to log
         robotPoses.add(observation.pose());
-        if (rejectPose) {
-          robotPosesRejected.add(observation.pose());
-        } else {
+        if (acceptPose) {
           robotPosesAccepted.add(observation.pose());
+        } else {
+          robotPosesRejected.add(observation.pose());
         }
 
         // Skip if rejected
-        if (rejectPose) {
+        if (!acceptPose) {
           continue;
         }
 
@@ -185,6 +169,26 @@ public class Vision extends SubsystemBase {
         "Vision/Summary/RobotPosesRejected",
         allRobotPosesRejected.toArray(new Pose3d[allRobotPosesRejected.size()]));
     allPoses = allRobotPoses;
+  }
+
+  private boolean shouldAccept(VisionIO.PoseObservation observation) {
+    if (observation.tagCount() == 0) {
+      return false;
+    }
+    if (!RotationUtil.within(
+        observation.pose().getRotation().toRotation2d(), gyro.get(), maxYawError)) {
+      return false;
+    }
+    if (Math.abs(observation.pose().getZ()) > maxZError) {
+      return false; // Must have realistic Z coordinate
+    }
+    if (observation.pose().getX() < 0.0
+        || observation.pose().getX() > aprilTagLayout.getFieldLength()
+        || observation.pose().getY() < 0.0
+        || observation.pose().getY() > aprilTagLayout.getFieldWidth()) {
+      return false; // Must be within the field boundaries
+    }
+    return true;
   }
 
   @Nullable

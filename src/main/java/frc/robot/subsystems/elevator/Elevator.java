@@ -20,6 +20,6 @@ public class Elevator extends SubsystemBase {
 
   // TODO: deprecate in favor of setpoints
   public void drive(double power) {
-    io.drive(power * .1);
+    io.drive(power * .25);
   }
 }

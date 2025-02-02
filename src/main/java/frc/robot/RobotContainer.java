@@ -13,6 +13,7 @@
 
 package frc.robot;
 
+import static frc.robot.Constants.currentRobot;
 import static frc.robot.subsystems.vision.VisionConstants.*;
 
 import edu.wpi.first.math.geometry.Pose3d;
@@ -70,7 +71,8 @@ public class RobotContainer {
                 drive::addVisionMeasurement,
                 new VisionIOPhotonVision(pv1c1, pv1c1Pos),
                 new VisionIOPhotonVision(pv1c2, pv1c2Pos));
-        elevator = new Elevator(new ElevatorIOSpark());
+        if (currentRobot == Constants.Robots.Ferry) elevator = new Elevator(new ElevatorIOSpark());
+        else elevator = new Elevator(new ElevatorIOSim());
         break;
 
       case SIM:

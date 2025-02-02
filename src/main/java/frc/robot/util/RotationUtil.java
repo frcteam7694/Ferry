@@ -9,7 +9,7 @@ public class RotationUtil {
   }
 
   public static Rotation2d diff(Rotation2d a, Rotation2d b) {
-    return abs(a.rotateBy(b));
+    return abs(a.rotateBy(b.unaryMinus()));
   }
 
   public static Rotation2d abs(Rotation2d in) {
