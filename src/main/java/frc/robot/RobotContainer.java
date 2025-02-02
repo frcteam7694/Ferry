@@ -24,7 +24,11 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.commands.DriveCommands;
+import frc.robot.commands.ElevatorCommands;
 import frc.robot.subsystems.drive.*;
+import frc.robot.subsystems.elevator.Elevator;
+import frc.robot.subsystems.elevator.ElevatorIOSim;
+import frc.robot.subsystems.elevator.ElevatorIOSpark;
 import frc.robot.subsystems.vision.Vision;
 import frc.robot.subsystems.vision.VisionIO;
 import frc.robot.subsystems.vision.VisionIOPhotonVision;
@@ -40,6 +44,7 @@ public class RobotContainer {
   // Subsystems
   private final Drive drive;
   private final Vision vision;
+  private final Elevator elevator;
 
   // Controller
   private final CommandXboxController controller = new CommandXboxController(0);
@@ -65,6 +70,7 @@ public class RobotContainer {
                 drive::addVisionMeasurement,
                 new VisionIOPhotonVision(pv1c1, pv1c1Pos),
                 new VisionIOPhotonVision(pv1c2, pv1c2Pos));
+        elevator = new Elevator(new ElevatorIOSpark());
         break;
 
       case SIM:
@@ -82,6 +88,7 @@ public class RobotContainer {
                 drive::addVisionMeasurement,
                 new VisionIOPhotonVisionSim(pv1c1, pv1c1Pos, drive::getPose),
                 new VisionIOPhotonVisionSim(pv1c2, pv1c2Pos, drive::getPose));
+        elevator = new Elevator(new ElevatorIOSim());
         break;
 
       default:
@@ -93,15 +100,13 @@ public class RobotContainer {
                 new ModuleIO() {},
                 new ModuleIO() {},
                 new ModuleIO() {});
-
-        if (Constants.useVision) {
-          vision =
-              new Vision(
-                  drive::getRotation,
-                  drive::addVisionMeasurement,
-                  new VisionIO() {},
-                  new VisionIO() {});
-        }
+        vision =
+            new Vision(
+                drive::getRotation,
+                drive::addVisionMeasurement,
+                new VisionIO() {},
+                new VisionIO() {});
+        elevator = new Elevator(new ElevatorIOSim());
         break;
     }
 
@@ -144,7 +149,9 @@ public class RobotContainer {
             () -> -controller.getLeftY(),
             () -> -controller.getLeftX(),
             () -> -controller.getRightX()));
-
+    elevator.setDefaultCommand(
+        ElevatorCommands.joystickDrive(
+            elevator, () -> (controller.getRightTriggerAxis() - controller.getLeftTriggerAxis())));
     // Lock to 0° when A button is held
     controller
         .a()
