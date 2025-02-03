@@ -32,7 +32,7 @@ deploy {
 
                 frcJava(getArtifactTypeClass('FRCJavaArtifact')) {
                     // https://www.chiefdelphi.com/t/2024-wpilib-feedback/464322/141
-                    final MAX_JAVA_HEAP_SIZE_MB = 100;
+                    final MAX_JAVA_HEAP_SIZE_MB = 100
                     jvmArgs.add("-XX:+UnlockExperimentalVMOptions")
 
                     // Set the minimum heap size to the maximum heap size to avoid resizing
@@ -76,7 +76,7 @@ repositories {
     mavenLocal()
 }
 
-task(replayWatch, type: JavaExec) {
+tasks.register('replayWatch', JavaExec) {
     mainClass = "org.littletonrobotics.junction.ReplayWatch"
     classpath = sourceSets.main.runtimeClasspath
 }

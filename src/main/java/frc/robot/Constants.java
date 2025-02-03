@@ -20,14 +20,15 @@ import edu.wpi.first.wpilibj.RobotBase;
  * on a roboRIO. Change the value of "simMode" to switch between "sim" (physics sim) and "replay"
  * (log replay from a file).
  */
+@SuppressWarnings("ConstantValue")
 public final class Constants {
   public static final Mode simMode = Mode.REPLAY;
   public static final Mode currentMode = RobotBase.isReal() ? Mode.REAL : simMode;
   public static final boolean useVision = true;
-  public static Robots currentRobot =
+  public static final Robots currentRobot =
       BuildConstants.DEPLOY_SSID.contains("FRC") ? Robots.Terry : Robots.Ferry; // new radio
 
-  public static enum Mode {
+  public enum Mode {
     /** Running on a real robot. */
     REAL,
 
@@ -38,7 +39,7 @@ public final class Constants {
     REPLAY
   }
 
-  public static enum Robots {
+  public enum Robots {
     Terry,
     Ferry
   }

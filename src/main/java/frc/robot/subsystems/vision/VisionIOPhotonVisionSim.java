@@ -27,7 +27,6 @@ public class VisionIOPhotonVisionSim extends VisionIOPhotonVision {
   private static VisionSystemSim visionSim;
 
   private final Supplier<Pose2d> poseSupplier;
-  private final PhotonCameraSim cameraSim;
 
   /**
    * Creates a new VisionIOPhotonVisionSim.
@@ -48,8 +47,7 @@ public class VisionIOPhotonVisionSim extends VisionIOPhotonVision {
 
     // Add sim camera
     var cameraProperties = new SimCameraProperties();
-    cameraSim = new PhotonCameraSim(camera, cameraProperties);
-    visionSim.addCamera(cameraSim, robotToCamera);
+    visionSim.addCamera(new PhotonCameraSim(camera, cameraProperties), robotToCamera);
   }
 
   @Override

@@ -38,7 +38,7 @@ public class SparkOdometryThread {
   private final List<Queue<Double>> timestampQueues = new ArrayList<>();
 
   private static SparkOdometryThread instance = null;
-  private Notifier notifier = new Notifier(this::run);
+  private final Notifier notifier = new Notifier(this::run);
 
   public static SparkOdometryThread getInstance() {
     if (instance == null) {

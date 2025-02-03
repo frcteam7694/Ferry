@@ -182,13 +182,11 @@ public class Vision extends SubsystemBase {
     if (Math.abs(observation.pose().getZ()) > maxZError) {
       return false; // Must have realistic Z coordinate
     }
-    if (observation.pose().getX() < 0.0
-        || observation.pose().getX() > aprilTagLayout.getFieldLength()
-        || observation.pose().getY() < 0.0
-        || observation.pose().getY() > aprilTagLayout.getFieldWidth()) {
-      return false; // Must be within the field boundaries
-    }
-    return true;
+    return (observation.pose().getX() >= 0.0)
+        && (observation.pose().getX() <= aprilTagLayout.getFieldLength())
+        && (observation.pose().getY() >= 0.0)
+        && (observation.pose().getY()
+            <= aprilTagLayout.getFieldWidth()); // Must be within the field boundaries
   }
 
   @Nullable
@@ -200,8 +198,8 @@ public class Vision extends SubsystemBase {
   }
 
   @FunctionalInterface
-  public static interface VisionConsumer {
-    public void accept(
+  public interface VisionConsumer {
+    void accept(
         Pose2d visionRobotPoseMeters,
         double timestampSeconds,
         Matrix<N3, N1> visionMeasurementStdDevs);

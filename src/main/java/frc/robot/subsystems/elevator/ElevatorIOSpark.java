@@ -70,4 +70,9 @@ public class ElevatorIOSpark implements ElevatorIO {
     Logger.recordOutput("Elevator/power", power);
     rightSpark.set(power);
   }
+
+  @Override
+  public void zeroEncoder() {
+    encoder.setPosition(0);
+  }
 }

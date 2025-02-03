@@ -8,10 +8,6 @@ import java.util.function.DoubleSupplier;
 public class ElevatorCommands {
 
   public static Command joystickDrive(Elevator elevator, DoubleSupplier power) {
-    return Commands.run(
-        () -> {
-          elevator.drive(power.getAsDouble());
-        },
-        elevator);
+    return Commands.run(() -> elevator.drive(power.getAsDouble()), elevator);
   }
 }
