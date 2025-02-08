@@ -16,6 +16,7 @@ package frc.robot;
 import static frc.robot.Constants.currentRobot;
 import static frc.robot.subsystems.vision.VisionConstants.*;
 
+import com.pathplanner.lib.auto.AutoBuilder;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.GenericHID;
@@ -34,6 +35,8 @@ import frc.robot.subsystems.vision.Vision;
 import frc.robot.subsystems.vision.VisionIO;
 import frc.robot.subsystems.vision.VisionIOPhotonVision;
 import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
+import frc.robot.util.Elastic;
+import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -51,7 +54,7 @@ public class RobotContainer {
   private final CommandXboxController controller = new CommandXboxController(0);
 
   // Dashboard inputs
-  //    private final LoggedDashboardChooser<Command> autoChooser;
+  private final LoggedDashboardChooser<Command> autoChooser;
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
@@ -113,8 +116,7 @@ public class RobotContainer {
     }
 
     // Set up auto routines
-    //    autoChooser = new LoggedDashboardChooser<>("Auto Choices",
-    // AutoBuilder.buildAutoChooser());
+    autoChooser = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());
 
     // Set up SysId routines
     //    autoChooser.addOption(
@@ -151,9 +153,9 @@ public class RobotContainer {
             () -> -controller.getLeftY(),
             () -> -controller.getLeftX(),
             () -> -controller.getRightX()));
-    elevator.setDefaultCommand(
-        ElevatorCommands.joystickDrive(
-            elevator, () -> (controller.getRightTriggerAxis() - controller.getLeftTriggerAxis())));
+    elevator.setDefaultCommand(ElevatorCommands.setPointDrive(elevator));
+    controller.leftBumper().onTrue(ElevatorCommands.setSetPoint(elevator, 0));
+    controller.rightBumper().onTrue(ElevatorCommands.setSetPoint(elevator, 50));
     // Lock to 0° when A button is held
     controller
         .a()
@@ -191,7 +193,12 @@ public class RobotContainer {
    * @return the command to run in autonomous
    */
   public Command getAutonomousCommand() {
-    return Commands.none();
-    //    return autoChooser.get();
+    return autoChooser
+        .get()
+        .andThen(
+            () ->
+                Elastic.sendNotification(
+                    new Elastic.Notification(
+                        Elastic.Notification.NotificationLevel.WARNING, "dunzo", "")));
   }
 }

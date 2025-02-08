@@ -26,7 +26,7 @@ public final class Constants {
   public static final Mode currentMode = RobotBase.isReal() ? Mode.REAL : simMode;
   public static final boolean useVision = true;
   public static final Robots currentRobot =
-      BuildConstants.DEPLOY_SSID.contains("FRC") ? Robots.Terry : Robots.Ferry; // new radio
+      BuildConstants.DEPLOY_SSID.contains("FRC") ? Robots.Ferry : Robots.Terry; // new radio
 
   public enum Mode {
     /** Running on a real robot. */
