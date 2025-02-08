@@ -25,8 +25,7 @@ public class ElevatorIOSpark implements ElevatorIO {
     SparkMaxConfig leftConfig = new SparkMaxConfig();
     leftConfig
         .idleMode(SparkBaseConfig.IdleMode.kBrake)
-        .inverted(true)
-        .follow(rightSpark)
+        .inverted(false)
         .smartCurrentLimit(currentLimit)
         .voltageCompensation(12.0)
         .limitSwitch
@@ -68,7 +67,8 @@ public class ElevatorIOSpark implements ElevatorIO {
   @Override
   public void drive(double power) {
     Logger.recordOutput("Elevator/power", power);
-    rightSpark.set(power);
+    rightSpark.set(-power);
+    leftSpark.set(power);
   }
 
   @Override

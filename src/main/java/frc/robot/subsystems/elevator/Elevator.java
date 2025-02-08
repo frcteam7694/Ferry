@@ -35,4 +35,12 @@ public class Elevator extends SubsystemBase {
   public void setPointDrive() {
     drive(pid.calculate(inputs.encoder));
   }
+
+  public double getEncoder() {
+    return inputs.encoder;
+  }
+
+  public void zeroEncoder() {
+    io.zeroEncoder();
+  }
 }

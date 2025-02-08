@@ -137,6 +137,7 @@ public class RobotContainer {
 
     // Configure the button bindings
     configureButtonBindings();
+    elevator.zeroEncoder();
   }
 
   /**
@@ -153,7 +154,16 @@ public class RobotContainer {
             () -> -controller.getLeftY(),
             () -> -controller.getLeftX(),
             () -> -controller.getRightX()));
-    elevator.setDefaultCommand(ElevatorCommands.setPointDrive(elevator));
+    elevator.setDefaultCommand(
+        ElevatorCommands.drive(
+            elevator,
+            () -> (controller.getLeftTriggerAxis() - controller.getRightTriggerAxis()),
+            controller.back()));
+    //    elevator.setDefaultCommand(ElevatorCommands.setPointDrive(elevator));
+    //    elevator.setDefaultCommand(
+    //        ElevatorCommands.joystickDrive(
+    //            elevator, () -> (controller.getLeftTriggerAxis() -
+    // controller.getRightTriggerAxis())));
     controller.leftBumper().onTrue(ElevatorCommands.setSetPoint(elevator, 0));
     controller.rightBumper().onTrue(ElevatorCommands.setSetPoint(elevator, 50));
     // Lock to 0° when A button is held
