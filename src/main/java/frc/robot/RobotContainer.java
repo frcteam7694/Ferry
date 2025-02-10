@@ -16,14 +16,21 @@ package frc.robot;
 import static frc.robot.Constants.currentRobot;
 import static frc.robot.subsystems.vision.VisionConstants.*;
 
+import choreo.Choreo;
+import choreo.trajectory.SwerveSample;
+import choreo.trajectory.Trajectory;
 import com.pathplanner.lib.auto.AutoBuilder;
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.GenericHID;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.commands.DriveCommands;
 import frc.robot.commands.ElevatorCommands;
@@ -35,7 +42,8 @@ import frc.robot.subsystems.vision.Vision;
 import frc.robot.subsystems.vision.VisionIO;
 import frc.robot.subsystems.vision.VisionIOPhotonVision;
 import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
-import frc.robot.util.Elastic;
+import java.util.Optional;
+import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 /**
@@ -55,6 +63,10 @@ public class RobotContainer {
 
   // Dashboard inputs
   private final LoggedDashboardChooser<Command> autoChooser;
+
+  private final Optional<Trajectory<SwerveSample>> trajectory = Choreo.loadTrajectory("New Path");
+
+  private final Timer timer = new Timer();
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
@@ -203,12 +215,42 @@ public class RobotContainer {
    * @return the command to run in autonomous
    */
   public Command getAutonomousCommand() {
-    return autoChooser
-        .get()
-        .andThen(
-            () ->
-                Elastic.sendNotification(
-                    new Elastic.Notification(
-                        Elastic.Notification.NotificationLevel.WARNING, "dunzo", "")));
+    if (trajectory.isPresent()) {
+      // Get the initial pose of the trajectory
+      Optional<Pose2d> initialPose = trajectory.get().getInitialPose(isRedAlliance());
+      Logger.recordOutput(
+          "Choreo/Trajectory/End",
+          trajectory.get().getFinalPose(isRedAlliance()).orElse(new Pose2d()));
+
+      // Reset odometry to the start of the trajectory
+      initialPose.ifPresent(drive::setPose);
+    }
+
+    // Reset and start the timer when the autonomous period begins
+    timer.restart();
+
+    return new RunCommand(
+        () -> {
+          Logger.recordOutput("Choreo/Trajectory/isPresent", trajectory.isPresent());
+          if (trajectory.isPresent()) {
+            // Sample the trajectory at the current time into the autonomous period
+            Optional<SwerveSample> sample = trajectory.get().sampleAt(timer.get(), isRedAlliance());
+
+            sample.ifPresent(drive::followTrajectory);
+          }
+        });
+    //    return autoChooser
+    //        .get()
+    //        .andThen(
+    //            () ->
+    //                Elastic.sendNotification(
+    //                    new Elastic.Notification(
+    //                        Elastic.Notification.NotificationLevel.WARNING, "dunzo", "")));
+  }
+
+  private boolean isRedAlliance() {
+    return DriverStation.getAlliance()
+        .orElse(DriverStation.Alliance.Blue)
+        .equals(DriverStation.Alliance.Red);
   }
 }
