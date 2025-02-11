@@ -1,20 +1,7 @@
-// Copyright 2021-2024 FRC 6328
-// http://github.com/Mechanical-Advantage
-//
-// This program is free software; you can redistribute it and/or
-// modify it under the terms of the GNU General Public License
-// version 3 as published by the Free Software Foundation or
-// available in the root directory of this project.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-// GNU General Public License for more details.
-
 package frc.robot.subsystems.drive;
 
 import com.revrobotics.REVLibError;
-import com.revrobotics.spark.SparkMax;
+import com.revrobotics.spark.SparkBase;
 import edu.wpi.first.wpilibj.Notifier;
 import edu.wpi.first.wpilibj.RobotController;
 import java.util.ArrayList;
@@ -30,7 +17,7 @@ import java.util.function.DoubleSupplier;
  * all measurements in the sample are valid.
  */
 public class SparkOdometryThread {
-  private final List<SparkMax> sparks = new ArrayList<>();
+  private final List<SparkBase> sparks = new ArrayList<>();
   private final List<DoubleSupplier> sparkSignals = new ArrayList<>();
   private final List<DoubleSupplier> genericSignals = new ArrayList<>();
   private final List<Queue<Double>> sparkQueues = new ArrayList<>();
@@ -38,7 +25,7 @@ public class SparkOdometryThread {
   private final List<Queue<Double>> timestampQueues = new ArrayList<>();
 
   private static SparkOdometryThread instance = null;
-  private final Notifier notifier = new Notifier(this::run);
+  private Notifier notifier = new Notifier(this::run);
 
   public static SparkOdometryThread getInstance() {
     if (instance == null) {
@@ -52,13 +39,13 @@ public class SparkOdometryThread {
   }
 
   public void start() {
-    if (!timestampQueues.isEmpty()) {
+    if (timestampQueues.size() > 0) {
       notifier.startPeriodic(1.0 / DriveConstants.odometryFrequency);
     }
   }
 
   /** Registers a Spark signal to be read from the thread. */
-  public Queue<Double> registerSignal(SparkMax spark, DoubleSupplier signal) {
+  public Queue<Double> registerSignal(SparkBase spark, DoubleSupplier signal) {
     Queue<Double> queue = new ArrayBlockingQueue<>(20);
     Drive.odometryLock.lock();
     try {
@@ -121,8 +108,8 @@ public class SparkOdometryThread {
         for (int i = 0; i < genericSignals.size(); i++) {
           genericQueues.get(i).offer(genericSignals.get(i).getAsDouble());
         }
-        for (Queue<Double> queue : timestampQueues) {
-          queue.offer(timestamp);
+        for (int i = 0; i < timestampQueues.size(); i++) {
+          timestampQueues.get(i).offer(timestamp);
         }
       }
     } finally {

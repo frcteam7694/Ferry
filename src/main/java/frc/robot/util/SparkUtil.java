@@ -1,20 +1,7 @@
-// Copyright 2021-2024 FRC 6328
-// http://github.com/Mechanical-Advantage
-//
-// This program is free software; you can redistribute it and/or
-// modify it under the terms of the GNU General Public License
-// version 3 as published by the Free Software Foundation or
-// available in the root directory of this project.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-// GNU General Public License for more details.
-
 package frc.robot.util;
 
 import com.revrobotics.REVLibError;
-import com.revrobotics.spark.SparkMax;
+import com.revrobotics.spark.SparkBase;
 import java.util.function.Consumer;
 import java.util.function.DoubleConsumer;
 import java.util.function.DoubleSupplier;
@@ -25,7 +12,7 @@ public class SparkUtil {
   public static boolean sparkStickyFault = false;
 
   /** Processes a value from a Spark only if the value is valid. */
-  public static void ifOk(SparkMax spark, DoubleSupplier supplier, DoubleConsumer consumer) {
+  public static void ifOk(SparkBase spark, DoubleSupplier supplier, DoubleConsumer consumer) {
     double value = supplier.getAsDouble();
     if (spark.getLastError() == REVLibError.kOk) {
       consumer.accept(value);
@@ -35,7 +22,8 @@ public class SparkUtil {
   }
 
   /** Processes a value from a Spark only if the value is valid. */
-  public static void ifOk(SparkMax spark, DoubleSupplier[] suppliers, Consumer<double[]> consumer) {
+  public static void ifOk(
+      SparkBase spark, DoubleSupplier[] suppliers, Consumer<double[]> consumer) {
     double[] values = new double[suppliers.length];
     for (int i = 0; i < suppliers.length; i++) {
       values[i] = suppliers[i].getAsDouble();
@@ -48,7 +36,7 @@ public class SparkUtil {
   }
 
   /** Attempts to run the command until no error is produced. */
-  public static void tryUntilOk(SparkMax spark, int maxAttempts, Supplier<REVLibError> command) {
+  public static void tryUntilOk(SparkBase spark, int maxAttempts, Supplier<REVLibError> command) {
     for (int i = 0; i < maxAttempts; i++) {
       var error = command.get();
       if (error == REVLibError.kOk) {
