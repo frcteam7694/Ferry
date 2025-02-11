@@ -26,6 +26,8 @@ import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.smartdashboard.Field2d;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
@@ -42,6 +44,7 @@ public class Drive extends SubsystemBase {
   private final GyroIO gyroIO;
   private final GyroIOInputsAutoLogged gyroInputs = new GyroIOInputsAutoLogged();
   private final Module[] modules = new Module[4]; // FL, FR, BL, BR
+  private final Field2d field = new Field2d();
   private final SysIdRoutine sysId;
   private final Alert gyroDisconnectedAlert =
       new Alert("Disconnected gyro, using kinematics as fallback.", AlertType.kError);
@@ -276,12 +279,19 @@ public class Drive extends SubsystemBase {
   /** Returns the current odometry pose. */
   @AutoLogOutput(key = "Odometry/Robot")
   public Pose2d getPose() {
-    return poseEstimator.getEstimatedPosition();
+    Pose2d pos = new Pose2d(poseEstimator.getEstimatedPosition().getTranslation(), getRotation());
+    field.setRobotPose(pos);
+    SmartDashboard.putData("field", field);
+    return pos;
   }
 
   /** Returns the current odometry rotation. */
   public Rotation2d getRotation() {
-    return getPose().getRotation();
+    return gyroInputs.yawPosition;
+  }
+
+  public void resetGyro() {
+    gyroIO.resetGyro();
   }
 
   /** Resets the current odometry pose. */
