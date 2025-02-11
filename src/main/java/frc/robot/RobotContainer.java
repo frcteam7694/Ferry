@@ -1,5 +1,7 @@
 package frc.robot;
 
+import static frc.robot.subsystems.vision.VisionConstants.*;
+
 import com.pathplanner.lib.auto.AutoBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -10,7 +12,14 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.commands.DriveCommands;
+import frc.robot.commands.ElevatorCommands;
 import frc.robot.subsystems.drive.*;
+import frc.robot.subsystems.elevator.Elevator;
+import frc.robot.subsystems.elevator.ElevatorIOSim;
+import frc.robot.subsystems.elevator.ElevatorIOSpark;
+import frc.robot.subsystems.vision.Vision;
+import frc.robot.subsystems.vision.VisionIOPhotonVision;
+import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 /**
@@ -22,6 +31,8 @@ import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 public class RobotContainer {
   // Subsystems
   private final Drive drive;
+  private final Vision vision;
+  private final Elevator elevator;
 
   // Controller
   private final CommandXboxController controller = new CommandXboxController(0);
@@ -41,6 +52,16 @@ public class RobotContainer {
                 new ModuleIOSpark(1),
                 new ModuleIOSpark(2),
                 new ModuleIOSpark(3));
+        vision =
+            new Vision(
+                drive::getRotation,
+                drive::addVisionMeasurement,
+                new VisionIOPhotonVision(pv1c1, pv1c1Pos),
+                new VisionIOPhotonVision(pv1c2, pv1c2Pos));
+        elevator =
+            Constants.currentRobot == Constants.Robots.Ferry
+                ? new Elevator(new ElevatorIOSpark())
+                : new Elevator(new ElevatorIOSim());
         break;
 
       case SIM:
@@ -52,6 +73,13 @@ public class RobotContainer {
                 new ModuleIOSim(),
                 new ModuleIOSim(),
                 new ModuleIOSim());
+        vision =
+            new Vision(
+                drive::getRotation,
+                drive::addVisionMeasurement,
+                new VisionIOPhotonVisionSim(pv1c1, pv1c1Pos, drive::getPose),
+                new VisionIOPhotonVisionSim(pv1c2, pv1c2Pos, drive::getPose));
+        elevator = new Elevator(new ElevatorIOSim());
         break;
 
       default:
@@ -63,6 +91,13 @@ public class RobotContainer {
                 new ModuleIO() {},
                 new ModuleIO() {},
                 new ModuleIO() {});
+        vision =
+            new Vision(
+                drive::getRotation,
+                drive::addVisionMeasurement,
+                new VisionIOPhotonVisionSim(pv1c1, pv1c1Pos, drive::getPose),
+                new VisionIOPhotonVisionSim(pv1c2, pv1c2Pos, drive::getPose));
+        elevator = new Elevator(new ElevatorIOSim());
         break;
     }
 
@@ -87,6 +122,7 @@ public class RobotContainer {
 
     // Configure the button bindings
     configureButtonBindings();
+    elevator.zeroEncoder();
   }
 
   /**
@@ -127,6 +163,14 @@ public class RobotContainer {
                             new Pose2d(drive.getPose().getTranslation(), new Rotation2d())),
                     drive)
                 .ignoringDisable(true));
+
+    elevator.setDefaultCommand(
+        ElevatorCommands.drive(
+            elevator,
+            () -> (controller.getLeftTriggerAxis() - controller.getRightTriggerAxis()),
+            controller.back()));
+    controller.leftBumper().onTrue(ElevatorCommands.setSetPoint(elevator, 0));
+    controller.rightBumper().onTrue(ElevatorCommands.setSetPoint(elevator, 50));
   }
 
   /**
