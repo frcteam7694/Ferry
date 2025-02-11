@@ -1,4 +1,4 @@
-// Copyright 2021-2024 FRC 6328
+// Copyright 2021-2025 FRC 6328
 // http://github.com/Mechanical-Advantage
 //
 // This program is free software; you can redistribute it and/or
@@ -18,7 +18,7 @@ import org.littletonrobotics.junction.AutoLog;
 
 public interface GyroIO {
   @AutoLog
-  class GyroIOInputs {
+  public static class GyroIOInputs {
     public boolean connected = false;
     public Rotation2d yawPosition = new Rotation2d();
     public double yawVelocityRadPerSec = 0.0;
@@ -26,7 +26,5 @@ public interface GyroIO {
     public Rotation2d[] odometryYawPositions = new Rotation2d[] {};
   }
 
-  default void updateInputs(GyroIOInputs inputs) {}
-
-  default void resetGyro() {}
+  public default void updateInputs(GyroIOInputs inputs) {}
 }

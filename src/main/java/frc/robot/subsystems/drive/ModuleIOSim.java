@@ -1,4 +1,4 @@
-// Copyright 2021-2024 FRC 6328
+// Copyright 2021-2025 FRC 6328
 // http://github.com/Mechanical-Advantage
 //
 // This program is free software; you can redistribute it and/or
@@ -29,8 +29,8 @@ public class ModuleIOSim implements ModuleIO {
 
   private boolean driveClosedLoop = false;
   private boolean turnClosedLoop = false;
-  private final PIDController driveController = new PIDController(driveSimP, 0, driveSimD);
-  private final PIDController turnController = new PIDController(turnSimP, 0, turnSimD);
+  private PIDController driveController = new PIDController(driveSimP, 0, driveSimD);
+  private PIDController turnController = new PIDController(turnSimP, 0, turnSimD);
   private double driveFFVolts = 0.0;
   private double driveAppliedVolts = 0.0;
   private double turnAppliedVolts = 0.0;

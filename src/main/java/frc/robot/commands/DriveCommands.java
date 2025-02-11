@@ -1,4 +1,4 @@
-// Copyright 2021-2024 FRC 6328
+// Copyright 2021-2025 FRC 6328
 // http://github.com/Mechanical-Advantage
 //
 // This program is free software; you can redistribute it and/or
@@ -93,13 +93,12 @@ public class DriveCommands {
           boolean isFlipped =
               DriverStation.getAlliance().isPresent()
                   && DriverStation.getAlliance().get() == Alliance.Red;
-          speeds =
+          drive.runVelocity(
               ChassisSpeeds.fromFieldRelativeSpeeds(
                   speeds,
                   isFlipped
                       ? drive.getRotation().plus(new Rotation2d(Math.PI))
-                      : drive.getRotation());
-          drive.runVelocity(speeds);
+                      : drive.getRotation()));
         },
         drive);
   }
@@ -145,13 +144,12 @@ public class DriveCommands {
               boolean isFlipped =
                   DriverStation.getAlliance().isPresent()
                       && DriverStation.getAlliance().get() == Alliance.Red;
-              speeds =
+              drive.runVelocity(
                   ChassisSpeeds.fromFieldRelativeSpeeds(
                       speeds,
                       isFlipped
                           ? drive.getRotation().plus(new Rotation2d(Math.PI))
-                          : drive.getRotation());
-              drive.runVelocity(speeds);
+                          : drive.getRotation()));
             },
             drive)
 
@@ -178,7 +176,12 @@ public class DriveCommands {
             }),
 
         // Allow modules to orient
-        Commands.run(() -> drive.runCharacterization(0.0), drive).withTimeout(FF_START_DELAY),
+        Commands.run(
+                () -> {
+                  drive.runCharacterization(0.0);
+                },
+                drive)
+            .withTimeout(FF_START_DELAY),
 
         // Start timer
         Commands.runOnce(timer::restart),
@@ -226,7 +229,10 @@ public class DriveCommands {
         // Drive control sequence
         Commands.sequence(
             // Reset acceleration limiter
-            Commands.runOnce(() -> limiter.reset(0.0)),
+            Commands.runOnce(
+                () -> {
+                  limiter.reset(0.0);
+                }),
 
             // Turn in place, accelerating up to full speed
             Commands.run(

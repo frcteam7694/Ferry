@@ -1,4 +1,4 @@
-// Copyright 2021-2024 FRC 6328
+// Copyright 2021-2025 FRC 6328
 // http://github.com/Mechanical-Advantage
 //
 // This program is free software; you can redistribute it and/or
@@ -13,37 +13,22 @@
 
 package frc.robot;
 
-import static frc.robot.Constants.currentRobot;
-import static frc.robot.subsystems.vision.VisionConstants.*;
-
-import choreo.Choreo;
-import choreo.trajectory.SwerveSample;
-import choreo.trajectory.Trajectory;
 import com.pathplanner.lib.auto.AutoBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.GenericHID;
-import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.XboxController;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.commands.DriveCommands;
-import frc.robot.commands.ElevatorCommands;
-import frc.robot.subsystems.drive.*;
-import frc.robot.subsystems.elevator.Elevator;
-import frc.robot.subsystems.elevator.ElevatorIOSim;
-import frc.robot.subsystems.elevator.ElevatorIOSpark;
-import frc.robot.subsystems.vision.Vision;
-import frc.robot.subsystems.vision.VisionIO;
-import frc.robot.subsystems.vision.VisionIOPhotonVision;
-import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
-import java.util.Optional;
-import org.littletonrobotics.junction.Logger;
+import frc.robot.subsystems.drive.Drive;
+import frc.robot.subsystems.drive.GyroIO;
+import frc.robot.subsystems.drive.GyroIOPigeon2;
+import frc.robot.subsystems.drive.ModuleIO;
+import frc.robot.subsystems.drive.ModuleIOSim;
+import frc.robot.subsystems.drive.ModuleIOSpark;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 /**
@@ -55,18 +40,12 @@ import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 public class RobotContainer {
   // Subsystems
   private final Drive drive;
-  private final Vision vision;
-  private final Elevator elevator;
 
   // Controller
   private final CommandXboxController controller = new CommandXboxController(0);
 
   // Dashboard inputs
   private final LoggedDashboardChooser<Command> autoChooser;
-
-  private final Optional<Trajectory<SwerveSample>> trajectory = Choreo.loadTrajectory("New Path");
-
-  private final Timer timer = new Timer();
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
@@ -75,19 +54,11 @@ public class RobotContainer {
         // Real robot, instantiate hardware IO implementations
         drive =
             new Drive(
-                new GyroIONavX(),
+                new GyroIOPigeon2(),
                 new ModuleIOSpark(0),
                 new ModuleIOSpark(1),
                 new ModuleIOSpark(2),
                 new ModuleIOSpark(3));
-        vision =
-            new Vision(
-                drive::getRotation,
-                drive::addVisionMeasurement,
-                new VisionIOPhotonVision(pv1c1, pv1c1Pos),
-                new VisionIOPhotonVision(pv1c2, pv1c2Pos));
-        if (currentRobot == Constants.Robots.Ferry) elevator = new Elevator(new ElevatorIOSpark());
-        else elevator = new Elevator(new ElevatorIOSim());
         break;
 
       case SIM:
@@ -99,13 +70,6 @@ public class RobotContainer {
                 new ModuleIOSim(),
                 new ModuleIOSim(),
                 new ModuleIOSim());
-        vision =
-            new Vision(
-                drive::getRotation,
-                drive::addVisionMeasurement,
-                new VisionIOPhotonVisionSim(pv1c1, pv1c1Pos, drive::getPose),
-                new VisionIOPhotonVisionSim(pv1c2, pv1c2Pos, drive::getPose));
-        elevator = new Elevator(new ElevatorIOSim());
         break;
 
       default:
@@ -117,13 +81,6 @@ public class RobotContainer {
                 new ModuleIO() {},
                 new ModuleIO() {},
                 new ModuleIO() {});
-        vision =
-            new Vision(
-                drive::getRotation,
-                drive::addVisionMeasurement,
-                new VisionIO() {},
-                new VisionIO() {});
-        elevator = new Elevator(new ElevatorIOSim());
         break;
     }
 
@@ -131,25 +88,23 @@ public class RobotContainer {
     autoChooser = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());
 
     // Set up SysId routines
-    //    autoChooser.addOption(
-    //        "Drive Wheel Radius Characterization",
-    // DriveCommands.wheelRadiusCharacterization(drive));
-    //    autoChooser.addOption(
-    //        "Drive Simple FF Characterization", DriveCommands.feedforwardCharacterization(drive));
-    //    autoChooser.addOption(
-    //        "Drive SysId (Quasistatic Forward)",
-    //        drive.sysIdQuasistatic(SysIdRoutine.Direction.kForward));
-    //    autoChooser.addOption(
-    //        "Drive SysId (Quasistatic Reverse)",
-    //        drive.sysIdQuasistatic(SysIdRoutine.Direction.kReverse));
-    //    autoChooser.addOption(
-    //        "Drive SysId (Dynamic Forward)", drive.sysIdDynamic(SysIdRoutine.Direction.kForward));
-    //    autoChooser.addOption(
-    //        "Drive SysId (Dynamic Reverse)", drive.sysIdDynamic(SysIdRoutine.Direction.kReverse));
+    autoChooser.addOption(
+        "Drive Wheel Radius Characterization", DriveCommands.wheelRadiusCharacterization(drive));
+    autoChooser.addOption(
+        "Drive Simple FF Characterization", DriveCommands.feedforwardCharacterization(drive));
+    autoChooser.addOption(
+        "Drive SysId (Quasistatic Forward)",
+        drive.sysIdQuasistatic(SysIdRoutine.Direction.kForward));
+    autoChooser.addOption(
+        "Drive SysId (Quasistatic Reverse)",
+        drive.sysIdQuasistatic(SysIdRoutine.Direction.kReverse));
+    autoChooser.addOption(
+        "Drive SysId (Dynamic Forward)", drive.sysIdDynamic(SysIdRoutine.Direction.kForward));
+    autoChooser.addOption(
+        "Drive SysId (Dynamic Reverse)", drive.sysIdDynamic(SysIdRoutine.Direction.kReverse));
 
     // Configure the button bindings
     configureButtonBindings();
-    elevator.zeroEncoder();
   }
 
   /**
@@ -166,18 +121,7 @@ public class RobotContainer {
             () -> -controller.getLeftY(),
             () -> -controller.getLeftX(),
             () -> -controller.getRightX()));
-    elevator.setDefaultCommand(
-        ElevatorCommands.drive(
-            elevator,
-            () -> (controller.getLeftTriggerAxis() - controller.getRightTriggerAxis()),
-            controller.back()));
-    //    elevator.setDefaultCommand(ElevatorCommands.setPointDrive(elevator));
-    //    elevator.setDefaultCommand(
-    //        ElevatorCommands.joystickDrive(
-    //            elevator, () -> (controller.getLeftTriggerAxis() -
-    // controller.getRightTriggerAxis())));
-    controller.leftBumper().onTrue(ElevatorCommands.setSetPoint(elevator, 0));
-    controller.rightBumper().onTrue(ElevatorCommands.setSetPoint(elevator, 50));
+
     // Lock to 0° when A button is held
     controller
         .a()
@@ -186,27 +130,21 @@ public class RobotContainer {
                 drive,
                 () -> -controller.getLeftY(),
                 () -> -controller.getLeftX(),
-                Rotation2d::new));
+                () -> new Rotation2d()));
 
     // Switch to X pattern when X button is pressed
     controller.x().onTrue(Commands.runOnce(drive::stopWithX, drive));
 
-    // Reset gyro to 0° when B button is pressed
-    controller.b().onTrue(Commands.runOnce(drive::resetGyro, drive).ignoringDisable(true));
-  }
-
-  @Deprecated
-  public void sometimesReset() {
-    for (int i = 0; i < 2; i++) {
-      Pose3d pos = vision.getPose(i);
-      if (pos == null) break;
-      double diff =
-          Math.abs(drive.getRotation().getDegrees() - pos.toPose2d().getRotation().getDegrees());
-      SmartDashboard.putNumber("diff", diff);
-      if (diff < 1 && pos.getX() > .1 && pos.getY() > .1) {
-        drive.setTranslation(pos.toPose2d());
-      }
-    }
+    // Reset gyro to 0° when B button is pressed
+    controller
+        .b()
+        .onTrue(
+            Commands.runOnce(
+                    () ->
+                        drive.setPose(
+                            new Pose2d(drive.getPose().getTranslation(), new Rotation2d())),
+                    drive)
+                .ignoringDisable(true));
   }
 
   /**
@@ -215,42 +153,6 @@ public class RobotContainer {
    * @return the command to run in autonomous
    */
   public Command getAutonomousCommand() {
-    if (trajectory.isPresent()) {
-      // Get the initial pose of the trajectory
-      Optional<Pose2d> initialPose = trajectory.get().getInitialPose(isRedAlliance());
-      Logger.recordOutput(
-          "Choreo/Trajectory/End",
-          trajectory.get().getFinalPose(isRedAlliance()).orElse(new Pose2d()));
-
-      // Reset odometry to the start of the trajectory
-      initialPose.ifPresent(drive::setPose);
-    }
-
-    // Reset and start the timer when the autonomous period begins
-    timer.restart();
-
-    return new RunCommand(
-        () -> {
-          Logger.recordOutput("Choreo/Trajectory/isPresent", trajectory.isPresent());
-          if (trajectory.isPresent()) {
-            // Sample the trajectory at the current time into the autonomous period
-            Optional<SwerveSample> sample = trajectory.get().sampleAt(timer.get(), isRedAlliance());
-
-            sample.ifPresent(drive::followTrajectory);
-          }
-        });
-    //    return autoChooser
-    //        .get()
-    //        .andThen(
-    //            () ->
-    //                Elastic.sendNotification(
-    //                    new Elastic.Notification(
-    //                        Elastic.Notification.NotificationLevel.WARNING, "dunzo", "")));
-  }
-
-  private boolean isRedAlliance() {
-    return DriverStation.getAlliance()
-        .orElse(DriverStation.Alliance.Blue)
-        .equals(DriverStation.Alliance.Red);
+    return autoChooser.get();
   }
 }

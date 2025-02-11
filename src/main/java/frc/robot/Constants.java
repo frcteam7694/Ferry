@@ -1,4 +1,4 @@
-// Copyright 2021-2024 FRC 6328
+// Copyright 2021-2025 FRC 6328
 // http://github.com/Mechanical-Advantage
 //
 // This program is free software; you can redistribute it and/or
@@ -20,15 +20,11 @@ import edu.wpi.first.wpilibj.RobotBase;
  * on a roboRIO. Change the value of "simMode" to switch between "sim" (physics sim) and "replay"
  * (log replay from a file).
  */
-@SuppressWarnings("ConstantValue")
 public final class Constants {
-  public static final Mode simMode = Mode.REPLAY;
+  public static final Mode simMode = Mode.SIM;
   public static final Mode currentMode = RobotBase.isReal() ? Mode.REAL : simMode;
-  public static final boolean useVision = true;
-  public static final Robots currentRobot =
-      BuildConstants.DEPLOY_SSID.contains("FRC") ? Robots.Ferry : Robots.Terry; // new radio
 
-  public enum Mode {
+  public static enum Mode {
     /** Running on a real robot. */
     REAL,
 
@@ -37,10 +33,5 @@ public final class Constants {
 
     /** Replaying from a log file. */
     REPLAY
-  }
-
-  public enum Robots {
-    Terry,
-    Ferry
   }
 }
