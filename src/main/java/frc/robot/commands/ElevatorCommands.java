@@ -10,30 +10,30 @@ import java.util.function.DoubleSupplier;
 
 public class ElevatorCommands {
 
-    public static Command drive(Elevator elevator, DoubleSupplier joystickPower, Trigger manual) {
-        manual.onFalse(setSetPoint(elevator, elevator::getEncoder));
-        manual.onFalse(
-                new InstantCommand(
-                        () ->
-                                Elastic.sendNotification(
-                                        new Elastic.Notification(
-                                                Elastic.Notification.NotificationLevel.INFO, "", "done did"))));
-        return Commands.run(
-                () -> {
-                    if (manual.getAsBoolean()) {
-                        elevator.drive(joystickPower.getAsDouble());
-                    } else {
-                        elevator.setPointDrive();
-                    }
-                },
-                elevator);
-    }
+  public static Command drive(Elevator elevator, DoubleSupplier joystickPower, Trigger manual) {
+    manual.onFalse(setSetPoint(elevator, elevator::getEncoder));
+    manual.onFalse(
+        new InstantCommand(
+            () ->
+                Elastic.sendNotification(
+                    new Elastic.Notification(
+                        Elastic.Notification.NotificationLevel.INFO, "", "done did"))));
+    return Commands.run(
+        () -> {
+          if (manual.getAsBoolean()) {
+            elevator.drive(joystickPower.getAsDouble());
+          } else {
+            elevator.setPointDrive();
+          }
+        },
+        elevator);
+  }
 
-    public static Command setSetPoint(Elevator elevator, double setpoint) {
-        return new InstantCommand(() -> elevator.goTo(setpoint), elevator);
-    }
+  public static Command setSetPoint(Elevator elevator, double setpoint) {
+    return new InstantCommand(() -> elevator.goTo(setpoint), elevator);
+  }
 
-    public static Command setSetPoint(Elevator elevator, DoubleSupplier setpointSupplier) {
-        return new InstantCommand(() -> elevator.goTo(setpointSupplier.getAsDouble()), elevator);
-    }
+  public static Command setSetPoint(Elevator elevator, DoubleSupplier setpointSupplier) {
+    return new InstantCommand(() -> elevator.goTo(setpointSupplier.getAsDouble()), elevator);
+  }
 }

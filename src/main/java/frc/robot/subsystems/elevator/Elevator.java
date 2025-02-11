@@ -8,39 +8,39 @@ import org.littletonrobotics.junction.Logger;
 
 public class Elevator extends SubsystemBase {
 
-    private final ElevatorIO io;
-    private final ElevatorIOInputsAutoLogged inputs = new ElevatorIOInputsAutoLogged();
-    private final PIDController pid;
+  private final ElevatorIO io;
+  private final ElevatorIOInputsAutoLogged inputs = new ElevatorIOInputsAutoLogged();
+  private final PIDController pid;
 
-    public Elevator(ElevatorIO io) {
-        this.io = io;
-        this.pid = new PIDController(kP, kI, kD);
-    }
+  public Elevator(ElevatorIO io) {
+    this.io = io;
+    this.pid = new PIDController(kP, kI, kD);
+  }
 
-    @Override
-    public void periodic() {
-        io.updateInputs(inputs);
-        Logger.processInputs("Elevator", inputs);
-    }
+  @Override
+  public void periodic() {
+    io.updateInputs(inputs);
+    Logger.processInputs("Elevator", inputs);
+  }
 
-    public void goTo(double setpoint) {
-        pid.setSetpoint(setpoint);
-    }
+  public void goTo(double setpoint) {
+    pid.setSetpoint(setpoint);
+  }
 
-    // TODO: deprecate in favor of setpoints
-    public void drive(double power) {
-        io.drive(power);
-    }
+  // TODO: deprecate in favor of setpoints
+  public void drive(double power) {
+    io.drive(power);
+  }
 
-    public void setPointDrive() {
-        drive(pid.calculate(inputs.encoder));
-    }
+  public void setPointDrive() {
+    drive(pid.calculate(inputs.encoder));
+  }
 
-    public double getEncoder() {
-        return inputs.encoder;
-    }
+  public double getEncoder() {
+    return inputs.encoder;
+  }
 
-    public void zeroEncoder() {
-        io.zeroEncoder();
-    }
+  public void zeroEncoder() {
+    io.zeroEncoder();
+  }
 }

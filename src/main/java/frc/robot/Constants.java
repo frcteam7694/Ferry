@@ -10,14 +10,17 @@ import edu.wpi.first.wpilibj.RobotBase;
 public final class Constants {
   public static final Mode simMode = Mode.SIM;
   public static final Mode currentMode = RobotBase.isReal() ? Mode.REAL : simMode;
-  public static final Robots currentRobot = BuildConstants.DEPLOY_SSID.contains("FRC") ? Robots.Ferry : Robots.Terry;
+  public static final Robots currentRobot =
+      BuildConstants.DEPLOY_SSID.contains("FRC") ? Robots.Ferry : Robots.Terry;
 
   public enum Mode {
-    REAL, SIM, REPLAY
+    REAL,
+    SIM,
+    REPLAY
   }
 
   public enum Robots {
-    Terry, Ferry;
+    Terry,
+    Ferry;
   }
-
 }
