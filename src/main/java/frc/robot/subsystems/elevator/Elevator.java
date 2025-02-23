@@ -24,6 +24,7 @@ public class Elevator extends SubsystemBase {
   }
 
   public void goTo(double setpoint) {
+    Logger.recordOutput("Elevator/setpoint", setpoint);
     pid.setSetpoint(setpoint);
   }
 

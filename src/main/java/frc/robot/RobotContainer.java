@@ -11,8 +11,12 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.commands.DriveCommands;
+import frc.robot.commands.DropperCommands;
 import frc.robot.commands.ElevatorCommands;
 import frc.robot.subsystems.drive.*;
+import frc.robot.subsystems.dropper.Dropper;
+import frc.robot.subsystems.dropper.DropperIOSim;
+import frc.robot.subsystems.dropper.DropperIOSpark;
 import frc.robot.subsystems.elevator.Elevator;
 import frc.robot.subsystems.elevator.ElevatorIOSim;
 import frc.robot.subsystems.elevator.ElevatorIOSpark;
@@ -32,9 +36,11 @@ public class RobotContainer {
   private final Drive drive;
   private final Vision vision;
   private final Elevator elevator;
+  private final Dropper dropper;
 
   // Controller
-  private final CommandXboxController controller = new CommandXboxController(0);
+  public static final CommandXboxController driverController = new CommandXboxController(0);
+  public static final CommandXboxController operatorController = new CommandXboxController(1);
 
   // Dashboard inputs
   private final LoggedDashboardChooser<Command> autoChooser;
@@ -61,6 +67,10 @@ public class RobotContainer {
             Constants.currentRobot == Constants.Robots.Ferry
                 ? new Elevator(new ElevatorIOSpark())
                 : new Elevator(new ElevatorIOSim());
+        dropper =
+            Constants.currentRobot == Constants.Robots.Ferry
+                ? new Dropper(new DropperIOSpark())
+                : new Dropper(new DropperIOSim());
         break;
 
       case SIM:
@@ -79,6 +89,7 @@ public class RobotContainer {
                 new VisionIOPhotonVisionSim(pv1c1, pv1c1Pos, drive::getPose),
                 new VisionIOPhotonVisionSim(pv1c2, pv1c2Pos, drive::getPose));
         elevator = new Elevator(new ElevatorIOSim());
+        dropper = new Dropper(new DropperIOSim());
         break;
 
       default:
@@ -97,6 +108,7 @@ public class RobotContainer {
                 new VisionIOPhotonVisionSim(pv1c1, pv1c1Pos, drive::getPose),
                 new VisionIOPhotonVisionSim(pv1c2, pv1c2Pos, drive::getPose));
         elevator = new Elevator(new ElevatorIOSim());
+        dropper = new Dropper(new DropperIOSim());
         break;
     }
 
@@ -121,7 +133,7 @@ public class RobotContainer {
 
     // Configure the button bindings
     configureButtonBindings();
-    elevator.zeroEncoder();
+    //    elevator.zeroEncoder();
   }
 
   /**
@@ -135,33 +147,38 @@ public class RobotContainer {
     drive.setDefaultCommand(
         DriveCommands.joystickDrive(
             drive,
-            () -> -controller.getLeftY(),
-            () -> -controller.getLeftX(),
-            () -> -controller.getRightX()));
+            () -> -driverController.getLeftY(),
+            () -> -driverController.getLeftX(),
+            () -> -driverController.getRightX()));
 
     // Lock to 0° when A button is held
-    controller
+    driverController
         .a()
         .whileTrue(
             DriveCommands.joystickDriveAtAngle(
                 drive,
-                () -> -controller.getLeftY(),
-                () -> -controller.getLeftX(),
+                () -> -driverController.getLeftY(),
+                () -> -driverController.getLeftX(),
                 () -> new Rotation2d()));
 
     // Switch to X pattern when X button is pressed
-    controller.x().onTrue(Commands.runOnce(drive::stopWithX, drive));
+    driverController.x().onTrue(Commands.runOnce(drive::stopWithX, drive));
 
     // Reset gyro to 0° when B button is pressed
-    controller.b().onTrue(Commands.runOnce(drive::resetGyro, drive).ignoringDisable(true));
+    driverController.b().onTrue(Commands.runOnce(drive::resetGyro, drive).ignoringDisable(true));
 
     elevator.setDefaultCommand(
         ElevatorCommands.drive(
             elevator,
-            () -> (controller.getLeftTriggerAxis() - controller.getRightTriggerAxis()),
-            controller.back()));
-    controller.leftBumper().onTrue(ElevatorCommands.setSetPoint(elevator, 0));
-    controller.rightBumper().onTrue(ElevatorCommands.setSetPoint(elevator, 50));
+            () ->
+                (operatorController.getLeftTriggerAxis()
+                    - operatorController.getRightTriggerAxis()),
+            operatorController.back()));
+    operatorController.a().onTrue(ElevatorCommands.setSetPoint(elevator, 0));
+    operatorController.x().onTrue(ElevatorCommands.setSetPoint(elevator, 110));
+    operatorController.b().onTrue(ElevatorCommands.setSetPoint(elevator, 215));
+    operatorController.y().onTrue(ElevatorCommands.setSetPoint(elevator, 382));
+    operatorController.rightBumper().onTrue(DropperCommands.drop(dropper));
   }
 
   /**
