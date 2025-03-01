@@ -1,8 +1,10 @@
-package frc.robot.subsystems.dropper;
+package frc.robot.subsystems.forklift;
 
-import static frc.robot.subsystems.dropper.DropperConstants.*;
+import static frc.robot.subsystems.forklift.ForkliftConstants.currentLimit;
+import static frc.robot.subsystems.forklift.ForkliftConstants.forkliftCanId;
 import static frc.robot.util.SparkUtil.tryUntilOk;
 
+import com.revrobotics.AbsoluteEncoder;
 import com.revrobotics.spark.SparkBase;
 import com.revrobotics.spark.SparkLowLevel;
 import com.revrobotics.spark.SparkMax;
@@ -10,11 +12,15 @@ import com.revrobotics.spark.config.SparkBaseConfig;
 import com.revrobotics.spark.config.SparkMaxConfig;
 import org.littletonrobotics.junction.Logger;
 
-public class DropperIOSpark implements DropperIO {
+public class ForkliftIOSpark implements ForkliftIO {
+
   private final SparkMax spark;
 
-  public DropperIOSpark() {
-    spark = new SparkMax(dropperCanId, SparkLowLevel.MotorType.kBrushed);
+  private final AbsoluteEncoder encoder;
+
+  public ForkliftIOSpark() {
+    spark = new SparkMax(forkliftCanId, SparkLowLevel.MotorType.kBrushed); // Use droppersparkmax
+    this.encoder = spark.getAbsoluteEncoder();
     SparkMaxConfig config = new SparkMaxConfig();
     config
         .idleMode(SparkBaseConfig.IdleMode.kBrake)
@@ -36,8 +42,13 @@ public class DropperIOSpark implements DropperIO {
   }
 
   @Override
+  public void updateInputs(ForkliftIOInputs inputs) {
+    inputs.encoder = encoder.getPosition();
+  }
+
+  @Override
   public void drive(double power) {
-    Logger.recordOutput("Dropper/power", power);
+    Logger.recordOutput("Forklift/power", power);
     spark.set(power);
   }
 }

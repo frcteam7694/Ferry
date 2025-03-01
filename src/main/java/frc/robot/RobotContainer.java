@@ -13,6 +13,7 @@ import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.commands.DriveCommands;
 import frc.robot.commands.DropperCommands;
 import frc.robot.commands.ElevatorCommands;
+import frc.robot.commands.ForkliftCommands;
 import frc.robot.subsystems.drive.*;
 import frc.robot.subsystems.dropper.Dropper;
 import frc.robot.subsystems.dropper.DropperIOSim;
@@ -20,6 +21,9 @@ import frc.robot.subsystems.dropper.DropperIOSpark;
 import frc.robot.subsystems.elevator.Elevator;
 import frc.robot.subsystems.elevator.ElevatorIOSim;
 import frc.robot.subsystems.elevator.ElevatorIOSpark;
+import frc.robot.subsystems.forklift.Forklift;
+import frc.robot.subsystems.forklift.ForkliftIOSim;
+import frc.robot.subsystems.forklift.ForkliftIOSpark;
 import frc.robot.subsystems.vision.Vision;
 import frc.robot.subsystems.vision.VisionIOPhotonVision;
 import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
@@ -37,6 +41,7 @@ public class RobotContainer {
   private final Vision vision;
   private final Elevator elevator;
   private final Dropper dropper;
+  private final Forklift forklift;
 
   // Controller
   public static final CommandXboxController driverController = new CommandXboxController(0);
@@ -71,6 +76,10 @@ public class RobotContainer {
             Constants.currentRobot == Constants.Robots.Ferry
                 ? new Dropper(new DropperIOSpark())
                 : new Dropper(new DropperIOSim());
+        forklift =
+            Constants.currentRobot == Constants.Robots.Ferry
+                ? new Forklift(new ForkliftIOSpark())
+                : new Forklift(new ForkliftIOSim());
         break;
 
       case SIM:
@@ -90,6 +99,7 @@ public class RobotContainer {
                 new VisionIOPhotonVisionSim(pv1c2, pv1c2Pos, drive::getPose));
         elevator = new Elevator(new ElevatorIOSim());
         dropper = new Dropper(new DropperIOSim());
+        forklift = new Forklift(new ForkliftIOSim());
         break;
 
       default:
@@ -109,6 +119,7 @@ public class RobotContainer {
                 new VisionIOPhotonVisionSim(pv1c2, pv1c2Pos, drive::getPose));
         elevator = new Elevator(new ElevatorIOSim());
         dropper = new Dropper(new DropperIOSim());
+        forklift = new Forklift(new ForkliftIOSim());
         break;
     }
 
@@ -133,7 +144,8 @@ public class RobotContainer {
 
     // Configure the button bindings
     configureButtonBindings();
-    //    elevator.zeroEncoder();
+    elevator.zeroEncoder();
+    forklift.zeroEncoder();
   }
 
   /**
@@ -175,10 +187,14 @@ public class RobotContainer {
                     - operatorController.getRightTriggerAxis()),
             operatorController.back()));
     operatorController.a().onTrue(ElevatorCommands.setSetPoint(elevator, 0));
+    operatorController.back().onTrue(ElevatorCommands.setSetPoint(elevator, 95));
     operatorController.x().onTrue(ElevatorCommands.setSetPoint(elevator, 110));
     operatorController.b().onTrue(ElevatorCommands.setSetPoint(elevator, 215));
     operatorController.y().onTrue(ElevatorCommands.setSetPoint(elevator, 382));
     operatorController.rightBumper().onTrue(DropperCommands.drop(dropper));
+
+    operatorController.povUp().onTrue(ForkliftCommands.setSetPoint(forklift, 0));
+    operatorController.povDown().onTrue(ForkliftCommands.setSetPoint(forklift, .243));
   }
 
   /**

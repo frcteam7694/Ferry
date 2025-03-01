@@ -1,7 +1,5 @@
 package frc.robot.subsystems.dropper;
 
-import static frc.robot.subsystems.dropper.DropperConstants.*;
-
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import org.littletonrobotics.junction.Logger;
 
@@ -26,6 +24,6 @@ public class Dropper extends SubsystemBase {
   }
 
   public double getEncoder() {
-    return inputs.encoder;
+    return 0; // inputs.encoder;
   }
 }
