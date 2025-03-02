@@ -28,7 +28,7 @@ public class DriveConstants {
   public static final Rotation2d backRightZeroRotation = new Rotation2d(Math.PI / 2);
 
   // Device CAN IDs
-  public static final int pigeonCanId = 9;
+  public static final int pigeonCanId = -1;
 
   public static final int frontLeftDriveCanId = 1;
   public static final int backLeftDriveCanId = 3;
@@ -44,7 +44,7 @@ public class DriveConstants {
   public static final int driveMotorCurrentLimit = 50;
   public static final double wheelRadiusMeters = Units.inchesToMeters(1.5);
   public static final double driveMotorReduction =
-      4.71; // MAXSwerve with 14 pinion teeth and 22 spur teeth
+      5.08; // MAXSwerve with 13 pinion teeth and 22 spur teeth
   public static final DCMotor driveGearbox = DCMotor.getNEO(1);
 
   // Drive encoder configuration

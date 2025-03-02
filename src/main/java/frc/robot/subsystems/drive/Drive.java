@@ -315,6 +315,6 @@ public class Drive extends SubsystemBase {
 
   /** Returns the maximum angular speed in radians per sec. */
   public double getMaxAngularSpeedRadPerSec() {
-    return maxSpeedMetersPerSec / driveBaseRadius;
+    return (maxSpeedMetersPerSec / driveBaseRadius) / 2;
   }
 }

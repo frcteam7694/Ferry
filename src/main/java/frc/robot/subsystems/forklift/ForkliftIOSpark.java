@@ -48,7 +48,7 @@ public class ForkliftIOSpark implements ForkliftIO {
 
   @Override
   public void drive(double power) {
-    Logger.recordOutput("Forklift/power", power);
-    spark.set(power);
+    Logger.recordOutput("Forklift/power", -power);
+    spark.set(-power);
   }
 }

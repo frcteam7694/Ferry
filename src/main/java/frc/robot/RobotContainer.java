@@ -3,6 +3,7 @@ package frc.robot;
 import static frc.robot.subsystems.vision.VisionConstants.*;
 
 import com.pathplanner.lib.auto.AutoBuilder;
+import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
@@ -146,6 +147,9 @@ public class RobotContainer {
     configureButtonBindings();
     elevator.zeroEncoder();
     forklift.zeroEncoder();
+
+    var camera = CameraServer.startAutomaticCapture();
+    camera.setFPS(25);
   }
 
   /**
@@ -159,6 +163,8 @@ public class RobotContainer {
     drive.setDefaultCommand(
         DriveCommands.joystickDrive(
             drive,
+            driverController.leftTrigger(),
+            driverController.rightTrigger(),
             () -> -driverController.getLeftY(),
             () -> -driverController.getLeftX(),
             () -> -driverController.getRightX()));
@@ -187,12 +193,13 @@ public class RobotContainer {
                     - operatorController.getRightTriggerAxis()),
             operatorController.back()));
     operatorController.a().onTrue(ElevatorCommands.setSetPoint(elevator, 0));
-    operatorController.back().onTrue(ElevatorCommands.setSetPoint(elevator, 95));
+    operatorController.leftBumper().onTrue(ElevatorCommands.setSetPoint(elevator, 95));
     operatorController.x().onTrue(ElevatorCommands.setSetPoint(elevator, 110));
     operatorController.b().onTrue(ElevatorCommands.setSetPoint(elevator, 215));
     operatorController.y().onTrue(ElevatorCommands.setSetPoint(elevator, 382));
     operatorController.rightBumper().onTrue(DropperCommands.drop(dropper));
 
+    forklift.setDefaultCommand(ForkliftCommands.drive(forklift));
     operatorController.povUp().onTrue(ForkliftCommands.setSetPoint(forklift, 0));
     operatorController.povDown().onTrue(ForkliftCommands.setSetPoint(forklift, .243));
   }

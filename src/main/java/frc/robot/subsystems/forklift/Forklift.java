@@ -15,6 +15,7 @@ public class Forklift extends SubsystemBase {
   public Forklift(ForkliftIO io) {
     this.io = io;
     this.pid = new PIDController(kP, kI, kD);
+    pid.enableContinuousInput(0, 1);
   }
 
   @Override

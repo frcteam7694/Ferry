@@ -15,8 +15,10 @@ import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.DriveConstants;
+import frc.robot.util.RotationUtil;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.LinkedList;
@@ -37,10 +39,32 @@ public class DriveCommands {
 
   private DriveCommands() {}
 
-  private static Translation2d getLinearVelocityFromJoysticks(double x, double y) {
+  private static Translation2d getLinearVelocityFromJoysticks(double x, double y, boolean lock) {
     // Apply deadband
     double linearMagnitude = MathUtil.applyDeadband(Math.hypot(x, y), DEADBAND);
     Rotation2d linearDirection = new Rotation2d(Math.atan2(y, x));
+    if (lock) {
+      linearMagnitude *= .25;
+      if (RotationUtil.within(
+          linearDirection, Rotation2d.fromDegrees(0), Rotation2d.fromDegrees(30))) {
+        linearDirection = Rotation2d.fromDegrees(0);
+      } else if (RotationUtil.within(
+          linearDirection, Rotation2d.fromDegrees(60), Rotation2d.fromDegrees(30))) {
+        linearDirection = Rotation2d.fromDegrees(60);
+      } else if (RotationUtil.within(
+          linearDirection, Rotation2d.fromDegrees(120), Rotation2d.fromDegrees(30))) {
+        linearDirection = Rotation2d.fromDegrees(120);
+      } else if (RotationUtil.within(
+          linearDirection, Rotation2d.fromDegrees(180), Rotation2d.fromDegrees(30))) {
+        linearDirection = Rotation2d.fromDegrees(180);
+      } else if (RotationUtil.within(
+          linearDirection, Rotation2d.fromDegrees(240), Rotation2d.fromDegrees(30))) {
+        linearDirection = Rotation2d.fromDegrees(240);
+      } else if (RotationUtil.within(
+          linearDirection, Rotation2d.fromDegrees(300), Rotation2d.fromDegrees(30))) {
+        linearDirection = Rotation2d.fromDegrees(300);
+      }
+    }
 
     // Square magnitude for more precise control
     linearMagnitude = linearMagnitude * linearMagnitude;
@@ -56,6 +80,8 @@ public class DriveCommands {
    */
   public static Command joystickDrive(
       Drive drive,
+      Trigger lock,
+      Trigger lock2,
       DoubleSupplier xSupplier,
       DoubleSupplier ySupplier,
       DoubleSupplier omegaSupplier) {
@@ -63,7 +89,10 @@ public class DriveCommands {
         () -> {
           // Get linear velocity
           Translation2d linearVelocity =
-              getLinearVelocityFromJoysticks(xSupplier.getAsDouble(), ySupplier.getAsDouble());
+              getLinearVelocityFromJoysticks(
+                  xSupplier.getAsDouble(),
+                  ySupplier.getAsDouble(),
+                  lock.getAsBoolean() || lock2.getAsBoolean());
 
           // Apply rotation deadband
           double omega = MathUtil.applyDeadband(omegaSupplier.getAsDouble(), DEADBAND);
@@ -115,7 +144,8 @@ public class DriveCommands {
             () -> {
               // Get linear velocity
               Translation2d linearVelocity =
-                  getLinearVelocityFromJoysticks(xSupplier.getAsDouble(), ySupplier.getAsDouble());
+                  getLinearVelocityFromJoysticks(
+                      xSupplier.getAsDouble(), ySupplier.getAsDouble(), false);
 
               // Calculate angular speed
               double omega =
