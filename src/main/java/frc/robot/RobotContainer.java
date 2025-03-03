@@ -197,11 +197,11 @@ public class RobotContainer {
     operatorController.x().onTrue(ElevatorCommands.setSetPoint(elevator, 110));
     operatorController.b().onTrue(ElevatorCommands.setSetPoint(elevator, 215));
     operatorController.y().onTrue(ElevatorCommands.setSetPoint(elevator, 382));
+
     operatorController.rightBumper().onTrue(DropperCommands.drop(dropper));
 
-    forklift.setDefaultCommand(ForkliftCommands.drive(forklift));
-    operatorController.povUp().onTrue(ForkliftCommands.setSetPoint(forklift, 0));
-    operatorController.povDown().onTrue(ForkliftCommands.setSetPoint(forklift, .243));
+    operatorController.povUp().onTrue(ForkliftCommands.driveFor(forklift, -1, .75));
+    operatorController.povDown().onTrue(ForkliftCommands.driveFor(forklift, 1, .75));
   }
 
   /**
