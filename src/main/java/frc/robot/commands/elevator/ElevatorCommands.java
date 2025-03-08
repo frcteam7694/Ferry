@@ -1,4 +1,4 @@
-package frc.robot.commands;
+package frc.robot.commands.elevator;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -15,7 +15,7 @@ public class ElevatorCommands {
       CommandXboxController controller,
       DoubleSupplier joystickPower,
       Trigger manual) {
-    manual.onFalse(setSetPoint(elevator, elevator::getEncoder));
+    manual.onFalse(new ElevateCommand(elevator, elevator::getEncoder));
     return Commands.run(
         () -> {
           if (manual.getAsBoolean()) {
@@ -37,6 +37,6 @@ public class ElevatorCommands {
   }
 
   public static Command resetEncoder(Elevator elevator) {
-    return new InstantCommand(elevator::zeroEncoder).andThen(setSetPoint(elevator, 0));
+    return new InstantCommand(elevator::zeroEncoder);
   }
 }

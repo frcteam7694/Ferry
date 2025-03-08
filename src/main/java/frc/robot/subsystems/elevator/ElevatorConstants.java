@@ -10,4 +10,10 @@ public class ElevatorConstants {
   public static final double kP = .005;
   public static final double kI = .001;
   public static final double kD = 0;
+
+  public static int level0 = 0;
+  public static int level1 = 95;
+  public static int level2 = 110;
+  public static int level3 = 215;
+  public static int level4 = 390;
 }

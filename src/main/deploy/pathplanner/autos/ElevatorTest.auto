@@ -5,15 +5,27 @@
     "data": {
       "commands": [
         {
-          "type": "path",
+          "type": "named",
           "data": {
-            "pathName": "LineToBackLeft"
+            "name": "DropTrough"
           }
         },
         {
           "type": "named",
           "data": {
-            "name": "DropTrough"
+            "name": "DropLow"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "DropMid"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "DropHigh"
           }
         }
       ]

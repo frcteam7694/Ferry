@@ -3,6 +3,7 @@ package frc.robot.subsystems.elevator;
 import org.littletonrobotics.junction.AutoLog;
 
 public interface ElevatorIO {
+
   @AutoLog
   class ElevatorIOInputs {
     public double encoder = 0.0;
@@ -12,5 +13,7 @@ public interface ElevatorIO {
 
   default void drive(double power) {}
 
-  default void zeroEncoder() {}
+  default void zeroEncoder(Elevator elevator) {}
+
+  default void resetAtBotton(Elevator elevator) {}
 }

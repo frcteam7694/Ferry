@@ -1,8 +1,10 @@
 package frc.robot;
 
+import static frc.robot.subsystems.elevator.ElevatorConstants.*;
 import static frc.robot.subsystems.vision.VisionConstants.*;
 
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.auto.NamedCommands;
 import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.GenericHID;
@@ -11,10 +13,9 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
-import frc.robot.commands.DriveCommands;
-import frc.robot.commands.DropperCommands;
-import frc.robot.commands.ElevatorCommands;
-import frc.robot.commands.ForkliftCommands;
+import frc.robot.commands.*;
+import frc.robot.commands.elevator.ElevateCommand;
+import frc.robot.commands.elevator.ElevatorCommands;
 import frc.robot.subsystems.drive.*;
 import frc.robot.subsystems.dropper.Dropper;
 import frc.robot.subsystems.dropper.DropperIOSim;
@@ -127,6 +128,11 @@ public class RobotContainer {
     // Set up auto routines
     autoChooser = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());
 
+    NamedCommands.registerCommand("DropTrough", AutoCommands.dropL1(elevator, dropper));
+    NamedCommands.registerCommand("DropLow", AutoCommands.dropL2(elevator, dropper));
+    NamedCommands.registerCommand("DropMid", AutoCommands.dropL3(elevator, dropper));
+    NamedCommands.registerCommand("DropHigh", AutoCommands.dropL4(elevator, dropper));
+
     // Set up SysId routines
     autoChooser.addOption(
         "Drive Wheel Radius Characterization", DriveCommands.wheelRadiusCharacterization(drive));
@@ -193,16 +199,18 @@ public class RobotContainer {
                 (operatorController.getLeftTriggerAxis()
                     - operatorController.getRightTriggerAxis()),
             operatorController.back()));
-    operatorController.a().onTrue(ElevatorCommands.setSetPoint(elevator, 0));
-    operatorController.leftBumper().onTrue(ElevatorCommands.setSetPoint(elevator, 95));
-    operatorController.x().onTrue(ElevatorCommands.setSetPoint(elevator, 110));
-    operatorController.b().onTrue(ElevatorCommands.setSetPoint(elevator, 215));
-    operatorController.y().onTrue(ElevatorCommands.setSetPoint(elevator, 390)); // more but whatever
+    operatorController.a().onTrue(new ElevateCommand(elevator, level0));
+    operatorController.leftBumper().onTrue(new ElevateCommand(elevator, level1));
+    operatorController.x().onTrue(new ElevateCommand(elevator, level2));
+    operatorController.b().onTrue(new ElevateCommand(elevator, level3));
+    operatorController.y().onTrue(new ElevateCommand(elevator, level4)); // more but whatever
     operatorController.start().onTrue(ElevatorCommands.resetEncoder(elevator));
 
     operatorController.rightBumper().onTrue(DropperCommands.drop(dropper));
 
     operatorController.povUp().onTrue(ForkliftCommands.driveFor(forklift, -1, .75));
+    operatorController.povLeft().onTrue(ForkliftCommands.drive(forklift, -1));
+    operatorController.povRight().onTrue(ForkliftCommands.drive(forklift, -1));
     operatorController.povDown().onTrue(ForkliftCommands.driveFor(forklift, 1, .75));
   }
 

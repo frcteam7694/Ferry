@@ -44,10 +44,15 @@ public class Elevator extends SubsystemBase {
   }
 
   public void zeroEncoder() {
-    io.zeroEncoder();
+    io.zeroEncoder(this);
   }
 
   public void buzzError(CommandXboxController controller) {
     controller.setRumble(GenericHID.RumbleType.kBothRumble, Math.abs(pid.getError()) / 382);
+    io.resetAtBotton(this);
+  }
+
+  public boolean atSetpoint() {
+    return pid.atSetpoint();
   }
 }
