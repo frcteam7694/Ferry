@@ -3,7 +3,9 @@ package frc.robot.subsystems.elevator;
 import static frc.robot.subsystems.elevator.ElevatorConstants.*;
 
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import org.littletonrobotics.junction.Logger;
 
 public class Elevator extends SubsystemBase {
@@ -43,5 +45,9 @@ public class Elevator extends SubsystemBase {
 
   public void zeroEncoder() {
     io.zeroEncoder();
+  }
+
+  public void buzzError(CommandXboxController controller) {
+    controller.setRumble(GenericHID.RumbleType.kBothRumble, Math.abs(pid.getError()) / 382);
   }
 }

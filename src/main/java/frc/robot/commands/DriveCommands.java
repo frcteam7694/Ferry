@@ -39,11 +39,11 @@ public class DriveCommands {
 
   private DriveCommands() {}
 
-  private static Translation2d getLinearVelocityFromJoysticks(double x, double y, boolean lock) {
+  private static Translation2d getLinearVelocityFromJoysticks(double x, double y, boolean slow) {
     // Apply deadband
     double linearMagnitude = MathUtil.applyDeadband(Math.hypot(x, y), DEADBAND);
     Rotation2d linearDirection = new Rotation2d(Math.atan2(y, x));
-    if (lock) {
+    if (slow) {
       linearMagnitude *= .25;
       if (RotationUtil.within(
           linearDirection, Rotation2d.fromDegrees(0), Rotation2d.fromDegrees(30))) {
@@ -80,8 +80,8 @@ public class DriveCommands {
    */
   public static Command joystickDrive(
       Drive drive,
-      Trigger lock,
-      Trigger lock2,
+      Trigger slow1,
+      Trigger slow2,
       DoubleSupplier xSupplier,
       DoubleSupplier ySupplier,
       DoubleSupplier omegaSupplier) {
@@ -92,7 +92,7 @@ public class DriveCommands {
               getLinearVelocityFromJoysticks(
                   xSupplier.getAsDouble(),
                   ySupplier.getAsDouble(),
-                  lock.getAsBoolean() || lock2.getAsBoolean());
+                  slow1.getAsBoolean() || slow2.getAsBoolean());
 
           // Apply rotation deadband
           double omega = MathUtil.applyDeadband(omegaSupplier.getAsDouble(), DEADBAND);

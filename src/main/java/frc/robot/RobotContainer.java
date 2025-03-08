@@ -188,6 +188,7 @@ public class RobotContainer {
     elevator.setDefaultCommand(
         ElevatorCommands.drive(
             elevator,
+            operatorController,
             () ->
                 (operatorController.getLeftTriggerAxis()
                     - operatorController.getRightTriggerAxis()),
@@ -196,7 +197,8 @@ public class RobotContainer {
     operatorController.leftBumper().onTrue(ElevatorCommands.setSetPoint(elevator, 95));
     operatorController.x().onTrue(ElevatorCommands.setSetPoint(elevator, 110));
     operatorController.b().onTrue(ElevatorCommands.setSetPoint(elevator, 215));
-    operatorController.y().onTrue(ElevatorCommands.setSetPoint(elevator, 382));
+    operatorController.y().onTrue(ElevatorCommands.setSetPoint(elevator, 390)); // more but whatever
+    operatorController.start().onTrue(ElevatorCommands.resetEncoder(elevator));
 
     operatorController.rightBumper().onTrue(DropperCommands.drop(dropper));
 

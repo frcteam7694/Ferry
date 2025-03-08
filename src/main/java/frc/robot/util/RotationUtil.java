@@ -19,5 +19,4 @@ public class RotationUtil {
   public static Rotation2d normalize(Rotation2d in) {
     return (in.getRadians() <= Math.PI) ? in : new Rotation2d(2 * Math.PI - in.getRadians());
   }
-
 }
