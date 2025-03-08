@@ -12,6 +12,7 @@ public class ElevateCommand extends Command {
   public ElevateCommand(Elevator elevator, int level) {
     this.level = level;
     this.elevator = elevator;
+    addRequirements(elevator);
   }
 
   public ElevateCommand(Elevator elevator, DoubleSupplier level) {

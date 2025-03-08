@@ -125,13 +125,14 @@ public class RobotContainer {
         break;
     }
 
-    // Set up auto routines
-    autoChooser = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());
-
+    // Named commands
     NamedCommands.registerCommand("DropTrough", AutoCommands.dropL1(elevator, dropper));
     NamedCommands.registerCommand("DropLow", AutoCommands.dropL2(elevator, dropper));
     NamedCommands.registerCommand("DropMid", AutoCommands.dropL3(elevator, dropper));
     NamedCommands.registerCommand("DropHigh", AutoCommands.dropL4(elevator, dropper));
+
+    // Set up auto routines
+    autoChooser = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());
 
     // Set up SysId routines
     autoChooser.addOption(
@@ -190,6 +191,8 @@ public class RobotContainer {
 
     // Reset gyro to 0° when B button is pressed
     driverController.b().onTrue(Commands.runOnce(drive::resetGyro, drive).ignoringDisable(true));
+
+    driverController.povLeft().onTrue(AutoCommands.dropL1(elevator, dropper));
 
     elevator.setDefaultCommand(
         ElevatorCommands.drive(

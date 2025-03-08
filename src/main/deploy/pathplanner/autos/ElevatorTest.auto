@@ -9,24 +9,6 @@
           "data": {
             "name": "DropTrough"
           }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "DropLow"
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "DropMid"
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "DropHigh"
-          }
         }
       ]
     }

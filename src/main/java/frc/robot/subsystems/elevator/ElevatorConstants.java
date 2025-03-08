@@ -15,5 +15,5 @@ public class ElevatorConstants {
   public static int level1 = 95;
   public static int level2 = 110;
   public static int level3 = 215;
-  public static int level4 = 390;
+  public static int level4 = 382;
 }
