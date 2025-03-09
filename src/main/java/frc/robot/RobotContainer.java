@@ -17,6 +17,9 @@ import frc.robot.commands.*;
 import frc.robot.commands.elevator.ElevateCommand;
 import frc.robot.commands.elevator.ElevatorCommands;
 import frc.robot.commands.elevator.ManuallyElevateCommand;
+import frc.robot.subsystems.climber.Climber;
+import frc.robot.subsystems.climber.ClimberIOSim;
+import frc.robot.subsystems.climber.ClimberIOSpark;
 import frc.robot.subsystems.drive.*;
 import frc.robot.subsystems.dropper.Dropper;
 import frc.robot.subsystems.dropper.DropperIOSim;
@@ -42,6 +45,7 @@ public class RobotContainer {
   private final Elevator elevator;
   private final Dropper dropper;
   private final Forklift forklift;
+  private final Climber climber;
 
   // Controller
   public static final CommandXboxController driverController = new CommandXboxController(0);
@@ -77,9 +81,13 @@ public class RobotContainer {
                 ? new Dropper(new DropperIOSpark())
                 : new Dropper(new DropperIOSim());
         forklift =
-            Constants.currentRobot == Constants.Robots.Ferry
-                ? new Forklift(new ForkliftIOSpark())
-                : new Forklift(new ForkliftIOSim());
+                Constants.currentRobot == Constants.Robots.Ferry
+                        ? new Forklift(new ForkliftIOSpark())
+                        : new Forklift(new ForkliftIOSim());
+        climber =
+                Constants.currentRobot == Constants.Robots.Ferry
+                        ? new Climber(new ClimberIOSpark())
+                        : new Climber(new ClimberIOSim());
         break;
 
       case SIM:
@@ -100,6 +108,7 @@ public class RobotContainer {
         elevator = new Elevator(new ElevatorIOSim());
         dropper = new Dropper(new DropperIOSim());
         forklift = new Forklift(new ForkliftIOSim());
+        climber = new Climber(new ClimberIOSim());
         break;
 
       default:
@@ -120,6 +129,7 @@ public class RobotContainer {
         elevator = new Elevator(new ElevatorIOSim());
         dropper = new Dropper(new DropperIOSim());
         forklift = new Forklift(new ForkliftIOSim());
+        climber = new Climber(new ClimberIOSim());
         break;
     }
 
@@ -166,7 +176,7 @@ public class RobotContainer {
    * edu.wpi.first.wpilibj2.command.button.JoystickButton}.
    */
   private void configureButtonBindings() {
-    // Default command, normal field-relative drive
+    // Drive
     drive.setDefaultCommand(
         DriveCommands.joystickDrive(
             drive,
@@ -192,8 +202,7 @@ public class RobotContainer {
     // Reset gyro to 0° when B button is pressed
     driverController.b().onTrue(Commands.runOnce(drive::resetGyro, drive).ignoringDisable(true));
 
-    driverController.povLeft().onTrue(AutoCommands.dropL1(elevator, dropper));
-
+    // Elevator
     elevator.setDefaultCommand(ElevatorCommands.drive(elevator, operatorController));
 
     operatorController
@@ -213,9 +222,11 @@ public class RobotContainer {
     operatorController.y().onTrue(ElevateCommand.create(elevator, level4)); // more but whatever
     operatorController.start().onTrue(ElevatorCommands.resetEncoder(elevator));
 
+    // Dropper
     operatorController.rightBumper().onTrue(DropperCommands.drop(dropper));
 
-    operatorController.povUp().onTrue(ForkliftCommands.driveFor(forklift, -.75, 1.2));
+    // Forklift
+    operatorController.povUp().onTrue(ForkliftCommands.driveFor(forklift, -1, .8));
     operatorController
         .povLeft()
         .onTrue(ForkliftCommands.drive(forklift, -.75))
@@ -224,7 +235,10 @@ public class RobotContainer {
         .povRight()
         .onTrue(ForkliftCommands.drive(forklift, -.75))
         .onFalse(ForkliftCommands.drive(forklift, 0));
-    operatorController.povDown().onTrue(ForkliftCommands.driveFor(forklift, .75, 1.2));
+    operatorController.povDown().onTrue(ForkliftCommands.driveFor(forklift, 1, .8));
+
+    // Climber
+    climber.setDefaultCommand(ClimberCommands.drive(climber, operatorController.rightStick(), operatorController));
   }
 
   /**
