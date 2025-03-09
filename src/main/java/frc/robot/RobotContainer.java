@@ -11,8 +11,6 @@ import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.InstantCommand;
-import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.commands.*;
@@ -32,7 +30,6 @@ import frc.robot.subsystems.elevator.ElevatorIOSpark;
 import frc.robot.subsystems.forklift.Forklift;
 import frc.robot.subsystems.forklift.ForkliftIOSim;
 import frc.robot.subsystems.forklift.ForkliftIOSpark;
-import frc.robot.util.Elastic;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 /**
@@ -251,12 +248,6 @@ public class RobotContainer {
    * @return the command to run in autonomous
    */
   public Command getAutonomousCommand() {
-    return new SequentialCommandGroup(
-        autoChooser.get(),
-        new InstantCommand(
-            () ->
-                Elastic.sendNotification(
-                    new Elastic.Notification(
-                        Elastic.Notification.NotificationLevel.INFO, "Done", "Done"))));
+    return autoChooser.get();
   }
 }
