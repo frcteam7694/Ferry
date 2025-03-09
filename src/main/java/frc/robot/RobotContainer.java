@@ -11,6 +11,8 @@ import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.commands.*;
@@ -30,6 +32,7 @@ import frc.robot.subsystems.elevator.ElevatorIOSpark;
 import frc.robot.subsystems.forklift.Forklift;
 import frc.robot.subsystems.forklift.ForkliftIOSim;
 import frc.robot.subsystems.forklift.ForkliftIOSpark;
+import frc.robot.util.Elastic;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 /**
@@ -81,13 +84,13 @@ public class RobotContainer {
                 ? new Dropper(new DropperIOSpark())
                 : new Dropper(new DropperIOSim());
         forklift =
-                Constants.currentRobot == Constants.Robots.Ferry
-                        ? new Forklift(new ForkliftIOSpark())
-                        : new Forklift(new ForkliftIOSim());
+            Constants.currentRobot == Constants.Robots.Ferry
+                ? new Forklift(new ForkliftIOSpark())
+                : new Forklift(new ForkliftIOSim());
         climber =
-                Constants.currentRobot == Constants.Robots.Ferry
-                        ? new Climber(new ClimberIOSpark())
-                        : new Climber(new ClimberIOSim());
+            Constants.currentRobot == Constants.Robots.Ferry
+                ? new Climber(new ClimberIOSpark())
+                : new Climber(new ClimberIOSim());
         break;
 
       case SIM:
@@ -238,7 +241,8 @@ public class RobotContainer {
     operatorController.povDown().onTrue(ForkliftCommands.driveFor(forklift, 1, .8));
 
     // Climber
-    climber.setDefaultCommand(ClimberCommands.drive(climber, operatorController.rightStick(), operatorController));
+    climber.setDefaultCommand(
+        ClimberCommands.drive(climber, operatorController.rightStick(), operatorController));
   }
 
   /**
@@ -247,6 +251,12 @@ public class RobotContainer {
    * @return the command to run in autonomous
    */
   public Command getAutonomousCommand() {
-    return autoChooser.get();
+    return new SequentialCommandGroup(
+        autoChooser.get(),
+        new InstantCommand(
+            () ->
+                Elastic.sendNotification(
+                    new Elastic.Notification(
+                        Elastic.Notification.NotificationLevel.INFO, "Done", "Done"))));
   }
 }

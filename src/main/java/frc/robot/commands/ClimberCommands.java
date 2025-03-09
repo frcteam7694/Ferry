@@ -5,7 +5,6 @@ import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.subsystems.climber.Climber;
-import java.util.function.DoubleSupplier;
 
 public class ClimberCommands {
 
@@ -14,6 +13,8 @@ public class ClimberCommands {
         () -> {
           if (unlock.getAsBoolean()) {
             climber.drive(power.getLeftY());
+          } else {
+            climber.drive(0);
           }
         },
         climber);
