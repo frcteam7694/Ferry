@@ -17,14 +17,6 @@ public class ElevatorCommands {
         elevator);
   }
 
-  //  public static Command setSetPoint(Elevator elevator, double setpoint) {
-  //    return new InstantCommand(() -> elevator.goTo(setpoint), elevator);
-  //  }
-  //
-  //  public static Command setSetPoint(Elevator elevator, DoubleSupplier setpointSupplier) {
-  //    return new InstantCommand(() -> elevator.goTo(setpointSupplier.getAsDouble()), elevator);
-  //  }
-
   public static Command resetEncoder(Elevator elevator) {
     return new InstantCommand(elevator::zeroEncoder);
   }

@@ -4,8 +4,9 @@ import static frc.robot.subsystems.elevator.ElevatorConstants.halfWayThrough;
 import static frc.robot.subsystems.elevator.ElevatorConstants.maxDistancePerCommand;
 
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.ParallelRaceGroup;
+import edu.wpi.first.wpilibj2.command.WaitCommand;
 import frc.robot.subsystems.elevator.Elevator;
-import java.util.function.DoubleSupplier;
 
 public class ElevateCommand extends Command {
 
@@ -20,14 +21,11 @@ public class ElevateCommand extends Command {
 
   public static Command create(Elevator elevator, int level) {
     if (Math.abs(elevator.getEncoder() - level) > maxDistancePerCommand) {
-      return new ElevateCommand(elevator, halfWayThrough)
+      return new ParallelRaceGroup(
+              new ElevateCommand(elevator, halfWayThrough), new WaitCommand(.2))
           .andThen(new ElevateCommand(elevator, level));
     }
     return new ElevateCommand(elevator, level);
-  }
-
-  public static Command create(Elevator elevator, DoubleSupplier level) {
-    return create(elevator, (int) level.getAsDouble());
   }
 
   @Override
