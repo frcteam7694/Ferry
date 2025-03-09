@@ -17,6 +17,7 @@ public class Elevator extends SubsystemBase {
   public Elevator(ElevatorIO io) {
     this.io = io;
     this.pid = new PIDController(kP, kI, kD);
+    pid.setTolerance(2);
   }
 
   @Override

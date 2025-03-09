@@ -25,8 +25,8 @@ public class AutoCommands {
   }
 
   private static Command dropAtLevel(Elevator elevator, Dropper dropper, int level) {
-    return new ElevateCommand(elevator, level)
+    return ElevateCommand.create(elevator, level)
         .andThen(DropperCommands.drop(dropper))
-        .andThen(new ElevateCommand(elevator, ElevatorConstants.level0));
+        .andThen(ElevateCommand.create(elevator, ElevatorConstants.level0));
   }
 }

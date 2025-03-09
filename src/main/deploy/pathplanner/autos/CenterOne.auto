@@ -9,12 +9,6 @@
           "data": {
             "pathName": "LineToBack"
           }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "DropTrough"
-          }
         }
       ]
     }

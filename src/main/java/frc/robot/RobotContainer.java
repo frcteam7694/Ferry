@@ -16,6 +16,7 @@ import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.commands.*;
 import frc.robot.commands.elevator.ElevateCommand;
 import frc.robot.commands.elevator.ElevatorCommands;
+import frc.robot.commands.elevator.ManuallyElevateCommand;
 import frc.robot.subsystems.drive.*;
 import frc.robot.subsystems.dropper.Dropper;
 import frc.robot.subsystems.dropper.DropperIOSim;
@@ -193,27 +194,37 @@ public class RobotContainer {
 
     driverController.povLeft().onTrue(AutoCommands.dropL1(elevator, dropper));
 
-    elevator.setDefaultCommand(
-        ElevatorCommands.drive(
-            elevator,
-            operatorController,
-            () ->
-                (operatorController.getLeftTriggerAxis()
-                    - operatorController.getRightTriggerAxis()),
-            operatorController.back()));
-    operatorController.a().onTrue(new ElevateCommand(elevator, level0));
-    operatorController.leftBumper().onTrue(new ElevateCommand(elevator, level1));
-    operatorController.x().onTrue(new ElevateCommand(elevator, level2));
-    operatorController.b().onTrue(new ElevateCommand(elevator, level3));
-    operatorController.y().onTrue(new ElevateCommand(elevator, level4)); // more but whatever
+    elevator.setDefaultCommand(ElevatorCommands.drive(elevator, operatorController));
+
+    operatorController
+        .back()
+        .onTrue(
+            new ManuallyElevateCommand(
+                elevator,
+                () ->
+                    (operatorController.getLeftTriggerAxis()
+                        - operatorController.getRightTriggerAxis()),
+                operatorController.back()));
+
+    operatorController.a().onTrue(ElevateCommand.create(elevator, level0));
+    operatorController.leftBumper().onTrue(ElevateCommand.create(elevator, level1));
+    operatorController.x().onTrue(ElevateCommand.create(elevator, level2));
+    operatorController.b().onTrue(ElevateCommand.create(elevator, level3));
+    operatorController.y().onTrue(ElevateCommand.create(elevator, level4)); // more but whatever
     operatorController.start().onTrue(ElevatorCommands.resetEncoder(elevator));
 
     operatorController.rightBumper().onTrue(DropperCommands.drop(dropper));
 
-    operatorController.povUp().onTrue(ForkliftCommands.driveFor(forklift, -1, .75));
-    operatorController.povLeft().onTrue(ForkliftCommands.drive(forklift, -1));
-    operatorController.povRight().onTrue(ForkliftCommands.drive(forklift, -1));
-    operatorController.povDown().onTrue(ForkliftCommands.driveFor(forklift, 1, .75));
+    operatorController.povUp().onTrue(ForkliftCommands.driveFor(forklift, -.75, 1.2));
+    operatorController
+        .povLeft()
+        .onTrue(ForkliftCommands.drive(forklift, -.75))
+        .onFalse(ForkliftCommands.drive(forklift, 0));
+    operatorController
+        .povRight()
+        .onTrue(ForkliftCommands.drive(forklift, -.75))
+        .onFalse(ForkliftCommands.drive(forklift, 0));
+    operatorController.povDown().onTrue(ForkliftCommands.driveFor(forklift, .75, 1.2));
   }
 
   /**
