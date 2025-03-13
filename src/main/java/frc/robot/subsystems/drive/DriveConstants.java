@@ -44,7 +44,7 @@ public class DriveConstants {
   public static final int driveMotorCurrentLimit = 50;
   public static final double wheelRadiusMeters = Units.inchesToMeters(1.5);
   public static final double driveMotorReduction =
-      5.08; // MAXSwerve with 13 pinion teeth and 22 spur teeth
+      5.08; // MAXSwerve with 13 pinion teeth and 22 spur teeth // kinda working with 4.5
   public static final DCMotor driveGearbox = DCMotor.getNEO(1);
 
   // Drive encoder configuration
@@ -76,6 +76,7 @@ public class DriveConstants {
 
   // Turn PID configuration
   public static final double turnKp = 2.0;
+  public static final double turnKi = 0.0;
   public static final double turnKd = 0.0;
   public static final double turnSimP = 8.0;
   public static final double turnSimD = 0.0;
@@ -83,9 +84,9 @@ public class DriveConstants {
   public static final double turnPIDMaxInput = 2 * Math.PI; // Radians
 
   // PathPlanner configuration
-  public static final double robotMassKg = 45.359;
+  public static final double robotMassKg = 58.97;
   public static final double robotMOI = 24.777;
-  public static final double wheelCOF = 1.2;
+  public static final double wheelCOF = 3;
   public static final RobotConfig ppConfig =
       new RobotConfig(
           robotMassKg,

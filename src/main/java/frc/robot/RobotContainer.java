@@ -1,12 +1,15 @@
 package frc.robot;
 
 import static frc.robot.subsystems.elevator.ElevatorConstants.*;
-import static frc.robot.subsystems.vision.VisionConstants.*;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
+import com.pathplanner.lib.commands.PathPlannerAuto;
+import com.pathplanner.lib.trajectory.PathPlannerTrajectory;
+import com.pathplanner.lib.trajectory.SwerveModuleTrajectoryState;
 import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -30,6 +33,9 @@ import frc.robot.subsystems.elevator.ElevatorIOSpark;
 import frc.robot.subsystems.forklift.Forklift;
 import frc.robot.subsystems.forklift.ForkliftIOSim;
 import frc.robot.subsystems.forklift.ForkliftIOSpark;
+import java.io.IOException;
+import org.json.simple.parser.ParseException;
+import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 /**
@@ -224,6 +230,7 @@ public class RobotContainer {
 
     // Dropper
     operatorController.rightBumper().onTrue(DropperCommands.drop(dropper));
+    operatorController.leftStick().onTrue(DropperCommands.halfDrop(dropper));
 
     // Forklift
     operatorController.povUp().onTrue(ForkliftCommands.driveFor(forklift, -1, .8));
@@ -249,5 +256,36 @@ public class RobotContainer {
    */
   public Command getAutonomousCommand() {
     return autoChooser.get();
+  }
+
+  public void checkModules()
+      throws IOException, ParseException, NoSuchFieldException, IllegalAccessException {
+    var auto = getAutonomousCommand();
+    if (auto == null) return;
+    if (!(auto instanceof PathPlannerAuto)) return;
+    var ppAuto =
+        PathPlannerAuto.getPathGroupFromAutoFile(autoChooser.getSendableChooser().getSelected());
+    if (ppAuto.isEmpty()) return;
+    var path = ppAuto.get(0);
+    var traj = path.getIdealTrajectory(DriveConstants.ppConfig);
+    if (traj.isEmpty()) return;
+    this.checkState(traj.get());
+  }
+
+  private void checkState(PathPlannerTrajectory traj)
+      throws NoSuchFieldException, IllegalAccessException {
+    var initialState = traj.getInitialState();
+    var clazz = initialState.getClass();
+    var field = clazz.getDeclaredField("moduleStates");
+    field.setAccessible(true);
+    var modules = (SwerveModuleTrajectoryState[]) field.get(initialState);
+    var wpiModules =
+        new SwerveModuleState[] {
+          new SwerveModuleState(modules[0].speedMetersPerSecond, modules[0].angle),
+          new SwerveModuleState(modules[1].speedMetersPerSecond, modules[1].angle),
+          new SwerveModuleState(modules[2].speedMetersPerSecond, modules[2].angle),
+          new SwerveModuleState(modules[3].speedMetersPerSecond, modules[3].angle)
+        };
+    Logger.recordOutput("StartingAutoWheels", wpiModules);
   }
 }

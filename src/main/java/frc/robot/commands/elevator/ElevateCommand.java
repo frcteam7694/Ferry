@@ -1,7 +1,7 @@
 package frc.robot.commands.elevator;
 
-import static frc.robot.subsystems.elevator.ElevatorConstants.halfWayThrough;
 import static frc.robot.subsystems.elevator.ElevatorConstants.maxDistancePerCommand;
+import static frc.robot.subsystems.elevator.ElevatorConstants.midPoint;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.ParallelRaceGroup;
@@ -17,12 +17,13 @@ public class ElevateCommand extends Command {
     this.level = level;
     this.elevator = elevator;
     addRequirements(elevator);
+    elevator.setTolerance(true);
   }
 
   public static Command create(Elevator elevator, int level) {
     if (Math.abs(elevator.getEncoder() - level) > maxDistancePerCommand) {
-      return new ParallelRaceGroup(
-              new ElevateCommand(elevator, halfWayThrough), new WaitCommand(.2))
+      int point = (level < elevator.getEncoder()) ? level - midPoint : midPoint;
+      return new ParallelRaceGroup(new ElevateCommand(elevator, point), new WaitCommand(.1))
           .andThen(new ElevateCommand(elevator, level));
     }
     return new ElevateCommand(elevator, level);
@@ -37,6 +38,11 @@ public class ElevateCommand extends Command {
   @Override
   public void execute() {
     elevator.setPointDrive();
+  }
+
+  @Override
+  public void end(boolean interrupted) {
+    elevator.setTolerance(false);
   }
 
   @Override

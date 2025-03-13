@@ -3,6 +3,7 @@ package frc.robot.subsystems.elevator;
 import static frc.robot.subsystems.elevator.ElevatorConstants.*;
 
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
@@ -17,13 +18,14 @@ public class Elevator extends SubsystemBase {
   public Elevator(ElevatorIO io) {
     this.io = io;
     this.pid = new PIDController(kP, kI, kD);
-    pid.setTolerance(2);
+    pid.setTolerance(kT);
   }
 
   @Override
   public void periodic() {
     io.updateInputs(inputs);
     Logger.processInputs("Elevator", inputs);
+    Logger.recordOutput("Elevator/atSetpoint", atSetpoint());
   }
 
   public void goTo(double setpoint) {
@@ -55,5 +57,10 @@ public class Elevator extends SubsystemBase {
 
   public boolean atSetpoint() {
     return pid.atSetpoint();
+  }
+
+  public void setTolerance(boolean start) {
+    if (start) pid.setTolerance(DriverStation.isAutonomous() ? autoT : kT);
+    else pid.setTolerance(kT);
   }
 }
