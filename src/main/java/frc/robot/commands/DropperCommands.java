@@ -20,4 +20,8 @@ public class DropperCommands {
   public static Command drop(Dropper dropper) {
     return driveFor(dropper, -1, .2).andThen(new WaitCommand(.5)).andThen(driveFor(dropper, 1, .1));
   }
+
+  public static Command halfDrop(Dropper dropper) {
+    return driveFor(dropper, -1, .2).andThen(new WaitCommand(.2)).andThen(driveFor(dropper, 1, .1));
+  }
 }

@@ -8,6 +8,9 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.math.trajectory.Trajectory;
+import edu.wpi.first.math.trajectory.TrajectoryConfig;
+import edu.wpi.first.math.trajectory.TrajectoryGenerator;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -15,12 +18,14 @@ import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.SwerveControllerCommand;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.DriveConstants;
-import frc.robot.util.RotationUtil;
+import frc.robot.util.LimelightHelpers;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.function.DoubleSupplier;
@@ -43,28 +48,7 @@ public class DriveCommands {
     // Apply deadband
     double linearMagnitude = MathUtil.applyDeadband(Math.hypot(x, y), DEADBAND);
     Rotation2d linearDirection = new Rotation2d(Math.atan2(y, x));
-    if (slow) {
-      linearMagnitude *= .25;
-      if (RotationUtil.within(
-          linearDirection, Rotation2d.fromDegrees(0), Rotation2d.fromDegrees(30))) {
-        linearDirection = Rotation2d.fromDegrees(0);
-      } else if (RotationUtil.within(
-          linearDirection, Rotation2d.fromDegrees(60), Rotation2d.fromDegrees(30))) {
-        linearDirection = Rotation2d.fromDegrees(60);
-      } else if (RotationUtil.within(
-          linearDirection, Rotation2d.fromDegrees(120), Rotation2d.fromDegrees(30))) {
-        linearDirection = Rotation2d.fromDegrees(120);
-      } else if (RotationUtil.within(
-          linearDirection, Rotation2d.fromDegrees(180), Rotation2d.fromDegrees(30))) {
-        linearDirection = Rotation2d.fromDegrees(180);
-      } else if (RotationUtil.within(
-          linearDirection, Rotation2d.fromDegrees(240), Rotation2d.fromDegrees(30))) {
-        linearDirection = Rotation2d.fromDegrees(240);
-      } else if (RotationUtil.within(
-          linearDirection, Rotation2d.fromDegrees(300), Rotation2d.fromDegrees(30))) {
-        linearDirection = Rotation2d.fromDegrees(300);
-      }
-    }
+    if (slow) linearMagnitude *= .25;
 
     // Square magnitude for more precise control
     linearMagnitude = linearMagnitude * linearMagnitude;
@@ -172,6 +156,32 @@ public class DriveCommands {
 
         // Reset PID controller when command starts
         .beforeStarting(() -> angleController.reset(drive.getRotation().getRadians()));
+  }
+
+  public static Command lockIn(Drive drive) {
+    Trajectory traj =
+        TrajectoryGenerator.generateTrajectory(
+            LimelightHelpers.getCameraPose3d_TargetSpace("").toPose2d(),
+            new ArrayList<>(),
+            new Pose2d(),
+            new TrajectoryConfig(2, 2));
+
+    SwerveControllerCommand cmd = null;
+    //        new SwerveControllerCommand(
+    //            traj,
+    //            () -> LimelightHelpers.getCameraPose3d_TargetSpace("").toPose2d(),
+    //            new SwerveDriveKinematics(
+    //                DriveConstants.moduleTranslations[0],
+    //                DriveConstants.moduleTranslations[1],
+    //                DriveConstants.moduleTranslations[2],
+    //                DriveConstants.moduleTranslations[3]),
+    //            new PIDController(.01, 0, 0),
+    //            new PIDController(.01, 0, 0),
+    //            new PIDController(DriveConstants.turnKp, DriveConstants.turnKi,
+    // DriveConstants.turnKd),
+    //            drive::setModuleStates,
+    //            drive);
+    return cmd;
   }
 
   /**
