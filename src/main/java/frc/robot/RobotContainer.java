@@ -144,6 +144,7 @@ public class RobotContainer {
     NamedCommands.registerCommand("DropLow", AutoCommands.dropL2(elevator, dropper));
     NamedCommands.registerCommand("DropMid", AutoCommands.dropL3(elevator, dropper));
     NamedCommands.registerCommand("DropHigh", AutoCommands.dropL4(elevator, dropper));
+    NamedCommands.registerCommand("Align", DriveCommands.home(drive));
 
     // Set up auto routines
     autoChooser = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());
@@ -204,6 +205,8 @@ public class RobotContainer {
 
     // Switch to X pattern when X button is pressed
     driverController.x().onTrue(Commands.runOnce(drive::stopWithX, drive));
+
+    driverController.povLeft().onTrue(DriveCommands.home(drive));
 
     // Reset gyro to 0° when B button is pressed
     driverController.b().onTrue(Commands.runOnce(drive::resetGyro, drive).ignoringDisable(true));

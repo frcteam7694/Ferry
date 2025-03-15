@@ -1,6 +1,7 @@
 package frc.robot.commands;
 
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -8,24 +9,18 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
-import edu.wpi.first.math.trajectory.Trajectory;
-import edu.wpi.first.math.trajectory.TrajectoryConfig;
-import edu.wpi.first.math.trajectory.TrajectoryGenerator;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Timer;
-import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.SwerveControllerCommand;
+import edu.wpi.first.wpilibj2.command.*;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.DriveConstants;
 import frc.robot.util.LimelightHelpers;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.function.DoubleSupplier;
@@ -158,30 +153,51 @@ public class DriveCommands {
         .beforeStarting(() -> angleController.reset(drive.getRotation().getRadians()));
   }
 
-  public static Command lockIn(Drive drive) {
-    Trajectory traj =
-        TrajectoryGenerator.generateTrajectory(
-            LimelightHelpers.getCameraPose3d_TargetSpace("").toPose2d(),
-            new ArrayList<>(),
-            new Pose2d(),
-            new TrajectoryConfig(2, 2));
+  public static Command home(Drive drive) {
+    return new SequentialCommandGroup(
+        new ParallelRaceGroup(lockIn(drive), new WaitCommand(2)),
+        new ParallelRaceGroup(forward(drive), new WaitCommand(1.5)));
+  }
 
-    SwerveControllerCommand cmd = null;
-    //        new SwerveControllerCommand(
-    //            traj,
-    //            () -> LimelightHelpers.getCameraPose3d_TargetSpace("").toPose2d(),
-    //            new SwerveDriveKinematics(
-    //                DriveConstants.moduleTranslations[0],
-    //                DriveConstants.moduleTranslations[1],
-    //                DriveConstants.moduleTranslations[2],
-    //                DriveConstants.moduleTranslations[3]),
-    //            new PIDController(.01, 0, 0),
-    //            new PIDController(.01, 0, 0),
-    //            new PIDController(DriveConstants.turnKp, DriveConstants.turnKi,
-    // DriveConstants.turnKd),
-    //            drive::setModuleStates,
-    //            drive);
-    return cmd;
+  public static Command lockIn(Drive drive) {
+    var pid = new PIDController(.1, 0, 0);
+    return Commands.run(
+        () -> {
+          // Get linear velocity
+          Translation2d linearVelocity =
+              getLinearVelocityFromJoysticks(
+                  Math.min(1, -pid.calculate(LimelightHelpers.getTX(""))), 0, true);
+
+          double omega = 0;
+
+          // Convert to field relative speeds & send command
+          ChassisSpeeds speeds =
+              new ChassisSpeeds(
+                  linearVelocity.getX() * drive.getMaxLinearSpeedMetersPerSec(),
+                  linearVelocity.getY() * drive.getMaxLinearSpeedMetersPerSec(),
+                  omega * drive.getMaxAngularSpeedRadPerSec());
+          drive.runVelocity(speeds);
+        },
+        drive);
+  }
+
+  public static Command forward(Drive drive) {
+    return Commands.run(
+        () -> {
+          // Get linear velocity
+          Translation2d linearVelocity = getLinearVelocityFromJoysticks(0, 1, true);
+
+          double omega = 0;
+
+          // Convert to field relative speeds & send command
+          ChassisSpeeds speeds =
+              new ChassisSpeeds(
+                  linearVelocity.getX() * drive.getMaxLinearSpeedMetersPerSec(),
+                  linearVelocity.getY() * drive.getMaxLinearSpeedMetersPerSec(),
+                  omega * drive.getMaxAngularSpeedRadPerSec());
+          drive.runVelocity(speeds);
+        },
+        drive);
   }
 
   /**
