@@ -1,4 +1,5 @@
 import java.nio.file.Files
+import java.lang.System;
 
 plugins {
     id "java"
@@ -146,6 +147,8 @@ tasks.withType(JavaCompile) {
 
 tasks.register('updateBuildConstants') {
     doLast {
+    def ssid = "NULL"
+    if (System.getProperty("os.name").toLowerCase().contains("ndow")) {
         // Run the netsh command to get wlan interfaces info
         def command = [
             'netsh',
@@ -158,7 +161,8 @@ tasks.register('updateBuildConstants') {
 
         // Find the SSID line, and extract the value after ":"
         def ssidLine = output.readLines().find { it.trim().startsWith("SSID") }
-        def ssid = ssidLine?.split(":")?.getAt(1)?.trim()
+        ssid = ssidLine?.split(":")?.getAt(1)?.trim()
+    }
 
         if (ssid) {
             //            if (ssid == "NWC-Secure") throw new GradleException("Not connected to robot")
