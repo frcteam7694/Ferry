@@ -14,10 +14,10 @@ public class ElevatorConstants {
   public static final double autoT = 10;
 
   public static int level0 = 0;
-  public static int level1 = 95;
-  public static int level2 = 120;
-  public static int level3 = 215;
-  public static int level4 = 383;
+  public static int level1 = 90;
+  public static int level2 = 90;
+  public static int level3 = 205;
+  public static int level4 = 390;
 
   public static int maxDistancePerCommand = 250;
   public static int midPoint = level4 / 5;

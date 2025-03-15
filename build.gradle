@@ -147,23 +147,24 @@ tasks.withType(JavaCompile) {
 
 tasks.register('updateBuildConstants') {
     doLast {
-    def ssid = "NULL"
-    if (System.getProperty("os.name").toLowerCase().contains("ndow")) {
-        // Run the netsh command to get wlan interfaces info
-        def command = [
-            'netsh',
-            'wlan',
-            'show',
-            'interfaces'
-        ]
-        def process = command.execute()
-        def output = process.text
+        def ssid = "NULL"
+        if (System.getProperty("os.name").toLowerCase().contains("ndow")) {
+            // Run the netsh command to get wlan interfaces info
+            def command = [
+                'netsh',
+                'wlan',
+                'show',
+                'interfaces'
+            ]
+            def process = command.execute()
+            def output = process.text
 
-        // Find the SSID line, and extract the value after ":"
-        def ssidLine = output.readLines().find { it.trim().startsWith("SSID") }
-        ssid = ssidLine?.split(":")?.getAt(1)?.trim()
-    }
+            // Find the SSID line, and extract the value after ":"
+            def ssidLine = output.readLines().find { it.trim().startsWith("SSID") }
+            ssid = ssidLine?.split(":")?.getAt(1)?.trim()
+        }
 
+        if (!ssid) ssid = "FRC_PROBABLY_TETHERED"
         if (ssid) {
             //            if (ssid == "NWC-Secure") throw new GradleException("Not connected to robot")
 
@@ -191,7 +192,8 @@ tasks.register('updateBuildConstants') {
 
             println "Updated BuildConstants.java with SSID: $ssid"
         } else {
-            throw new GradleException("SSID not found in wlan interfaces")
+            //            throw new GradleException("SSID not found in wlan interfaces")
+            println("No SSID. Tethered?")
         }
     }
 }
