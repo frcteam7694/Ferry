@@ -8,8 +8,8 @@ public class ElevatorConstants {
   public static final int currentLimit = 50;
 
   public static final double kP = .01;
-  public static final double kI = .002;
-  public static final double kD = 0;
+  public static final double kI = .001;
+  public static final double kD = .001;
   public static final double kT = 2;
   public static final double autoT = 10;
 
