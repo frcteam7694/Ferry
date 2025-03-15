@@ -7,7 +7,13 @@
         {
           "type": "path",
           "data": {
-            "pathName": "LineAlmostToBack"
+            "pathName": "LeftForward"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "L2FL"
           }
         },
         {
@@ -25,7 +31,7 @@
         {
           "type": "path",
           "data": {
-            "pathName": "BackToSrc"
+            "pathName": "FL2S"
           }
         }
       ]
