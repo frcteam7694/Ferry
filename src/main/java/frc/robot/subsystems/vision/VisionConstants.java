@@ -5,6 +5,8 @@ import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.math.util.Units;
+import frc.robot.Robot;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -18,7 +20,8 @@ public class VisionConstants {
 
   static {
     try {
-      aprilTagLayout = getFieldFromFile(Path.of("/home/lvuser/deploy/layout.json"));
+      aprilTagLayout =
+          Robot.isReal() ? getFieldFromFile(Path.of("/home/lvuser/deploy/layout.json")) : null;
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
@@ -27,15 +30,28 @@ public class VisionConstants {
   public static final boolean useUnlikelyPVEstimates = false;
 
   // Camera names, must match names configured on coprocessor
-  public static final String pv1c1 = "pv1c1";
-  public static final String pv1c2 = "pv1c2";
+  public static final String pv0c0 = "Cornelius";
+  public static final String pv0c1 = "Bartholomew";
+
+  private static final double frontModulePosition = Units.inchesToMeters((35.0 / 2) - 1.5);
+  private static final double rightModulePosition = -Units.inchesToMeters((25.0 / 2) - 1.5);
+  private static final double upModulePosition = Units.inchesToMeters(7.5); // +z
+  private static final double upModulePitch = -Math.PI / 6;
 
   // Robot to camera transforms
   // (Not used by Limelight, configure in web UI instead)
-  public static final Transform3d pv1c1Pos =
-      new Transform3d(0.3683, 0.0381, 0.0508, new Rotation3d(0.0, 0.0, Math.PI / 2));
-  public static final Transform3d pv1c2Pos =
-      new Transform3d(-.3429, -.0635, 0.4826, new Rotation3d(0.0, 0.0, -Math.PI / 2));
+  public static final Transform3d pv0c0Pos =
+      new Transform3d(
+          frontModulePosition,
+          rightModulePosition,
+          upModulePosition,
+          new Rotation3d(0.0, upModulePitch, 7 * Math.PI / 4));
+  public static final Transform3d pv0c1Pos =
+      new Transform3d(
+          -frontModulePosition,
+          -rightModulePosition,
+          upModulePosition,
+          new Rotation3d(0.0, upModulePitch, 3 * Math.PI / 4));
 
   // Basic filtering thresholds
   public static double maxAmbiguity = 1.3;

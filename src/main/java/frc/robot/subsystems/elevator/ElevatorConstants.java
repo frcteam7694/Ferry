@@ -17,7 +17,7 @@ public class ElevatorConstants {
   public static int level1 = 90;
   public static int level2 = 105;
   public static int level3 = 205;
-  public static int level4 = 385;
+  public static int level4 = 383;
 
   public static int maxDistancePerCommand = 250;
   public static int midPoint = level4 / 5;

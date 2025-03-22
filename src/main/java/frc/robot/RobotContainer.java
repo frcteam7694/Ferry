@@ -1,6 +1,7 @@
 package frc.robot;
 
 import static frc.robot.subsystems.elevator.ElevatorConstants.*;
+import static frc.robot.subsystems.vision.VisionConstants.*;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
@@ -33,6 +34,8 @@ import frc.robot.subsystems.elevator.ElevatorIOSpark;
 import frc.robot.subsystems.forklift.Forklift;
 import frc.robot.subsystems.forklift.ForkliftIOSim;
 import frc.robot.subsystems.forklift.ForkliftIOSpark;
+import frc.robot.subsystems.vision.Vision;
+import frc.robot.subsystems.vision.VisionIOPhotonVision;
 import java.io.IOException;
 import org.json.simple.parser.ParseException;
 import org.littletonrobotics.junction.Logger;
@@ -47,7 +50,7 @@ import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 public class RobotContainer {
   // Subsystems
   private final Drive drive;
-  //  private final Vision vision;
+  private final Vision vision;
   private final Elevator elevator;
   private final Dropper dropper;
   private final Forklift forklift;
@@ -72,12 +75,14 @@ public class RobotContainer {
                 new ModuleIOSpark(1),
                 new ModuleIOSpark(2),
                 new ModuleIOSpark(3));
-        //        vision =
-        //            new Vision(
-        //                drive::getRotation,
-        //                drive::addVisionMeasurement,
-        //                new VisionIOPhotonVision(pv1c1, pv1c1Pos),
-        //                new VisionIOPhotonVision(pv1c2, pv1c2Pos));
+        vision =
+            Constants.currentRobot == Constants.Robots.Terry
+                ? new Vision(
+                    drive::getRotation,
+                    drive::addVisionMeasurement,
+                    new VisionIOPhotonVision(pv0c0, pv0c0Pos),
+                    new VisionIOPhotonVision(pv0c1, pv0c1Pos))
+                : new Vision(drive::getRotation, drive::addVisionMeasurement);
         elevator =
             Constants.currentRobot == Constants.Robots.Ferry
                 ? new Elevator(new ElevatorIOSpark())
@@ -90,10 +95,7 @@ public class RobotContainer {
             Constants.currentRobot == Constants.Robots.Ferry
                 ? new Forklift(new ForkliftIOSpark())
                 : new Forklift(new ForkliftIOSim());
-        climber =
-            Constants.currentRobot == Constants.Robots.Ferry
-                ? new Climber(new ClimberIOSpark())
-                : new Climber(new ClimberIOSim());
+        climber = new Climber(new ClimberIOSpark());
         break;
 
       case SIM:
@@ -105,12 +107,7 @@ public class RobotContainer {
                 new ModuleIOSim(),
                 new ModuleIOSim(),
                 new ModuleIOSim());
-        //        vision =
-        //            new Vision(
-        //                drive::getRotation,
-        //                drive::addVisionMeasurement,
-        //                new VisionIOPhotonVisionSim(pv1c1, pv1c1Pos, drive::getPose),
-        //                new VisionIOPhotonVisionSim(pv1c2, pv1c2Pos, drive::getPose));
+        vision = new Vision(drive::getRotation, drive::addVisionMeasurement);
         elevator = new Elevator(new ElevatorIOSim());
         dropper = new Dropper(new DropperIOSim());
         forklift = new Forklift(new ForkliftIOSim());
@@ -126,12 +123,7 @@ public class RobotContainer {
                 new ModuleIO() {},
                 new ModuleIO() {},
                 new ModuleIO() {});
-        //        vision =
-        //            new Vision(
-        //                drive::getRotation,
-        //                drive::addVisionMeasurement,
-        //                new VisionIOPhotonVisionSim(pv1c1, pv1c1Pos, drive::getPose),
-        //                new VisionIOPhotonVisionSim(pv1c2, pv1c2Pos, drive::getPose));
+        vision = new Vision(drive::getRotation, drive::addVisionMeasurement);
         elevator = new Elevator(new ElevatorIOSim());
         dropper = new Dropper(new DropperIOSim());
         forklift = new Forklift(new ForkliftIOSim());
@@ -170,10 +162,12 @@ public class RobotContainer {
     elevator.zeroEncoder();
     forklift.zeroEncoder();
 
-    var camera1 = CameraServer.startAutomaticCapture();
-    camera1.setFPS(25);
-    var camera2 = CameraServer.startAutomaticCapture();
-    camera2.setFPS(25);
+    if (Robot.isReal()) {
+      var camera1 = CameraServer.startAutomaticCapture();
+      camera1.setFPS(25);
+      var camera2 = CameraServer.startAutomaticCapture();
+      camera2.setFPS(25);
+    }
   }
 
   /**
