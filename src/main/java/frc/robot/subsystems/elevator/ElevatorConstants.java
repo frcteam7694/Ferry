@@ -8,7 +8,7 @@ public class ElevatorConstants {
   public static final int currentLimit = 50;
 
   public static final double kP = .01;
-  public static final double kI = .001;
+  public static final double kI = .0005;
   public static final double kD = .001;
   public static final double kT = 2;
   public static final double autoT = 10;
@@ -17,8 +17,8 @@ public class ElevatorConstants {
   public static int level1 = 90;
   public static int level2 = 105;
   public static int level3 = 205;
-  public static int level4 = 383;
+  public static int level4 = 375;
 
   public static int maxDistancePerCommand = 250;
-  public static int midPoint = level4 / 5;
+  public static int midPoint = level4 / 3;
 }

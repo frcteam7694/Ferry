@@ -23,7 +23,7 @@ public class ElevateCommand extends Command {
   public static Command create(Elevator elevator, int level) {
     if (Math.abs(elevator.getEncoder() - level) > maxDistancePerCommand) {
       int point = (level < elevator.getEncoder()) ? level - midPoint : midPoint;
-      return new ParallelRaceGroup(new ElevateCommand(elevator, point), new WaitCommand(.1))
+      return new ParallelRaceGroup(new ElevateCommand(elevator, point), new WaitCommand(.15))
           .andThen(new ElevateCommand(elevator, level));
     }
     return new ElevateCommand(elevator, level);

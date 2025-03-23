@@ -159,8 +159,12 @@ public class DriveCommands {
         new ParallelRaceGroup(forward(drive), new WaitCommand(1.5)));
   }
 
+  public static Command homeWhileHolding(Drive drive, Trigger end) {
+    return new ParallelRaceGroup(lockIn(drive), new WaitUntilCommand(() -> !end.getAsBoolean()));
+  }
+
   public static Command lockIn(Drive drive) {
-    var pid = new PIDController(.1, 0, 0);
+    var pid = new PIDController(.15, .05, .02);
     return Commands.run(
         () -> {
           // Get linear velocity

@@ -164,9 +164,8 @@ public class RobotContainer {
 
     if (Robot.isReal()) {
       var camera1 = CameraServer.startAutomaticCapture();
+      camera1.setResolution(212, 160);
       camera1.setFPS(25);
-      var camera2 = CameraServer.startAutomaticCapture();
-      camera2.setFPS(25);
     }
   }
 
@@ -209,6 +208,9 @@ public class RobotContainer {
     driverController.x().onTrue(Commands.runOnce(drive::stopWithX, drive));
 
     driverController.povLeft().onTrue(DriveCommands.home(drive));
+    driverController
+        .povRight()
+        .onTrue(DriveCommands.homeWhileHolding(drive, driverController.povRight()));
 
     // Reset gyro to 0° when B button is pressed
     driverController.b().onTrue(Commands.runOnce(drive::resetGyro, drive).ignoringDisable(true));
