@@ -1,50 +1,115 @@
 {
-  "name":"Floor Bot",
+  "name": "Floor Bot",
   "rotations": [
-    {"axis": "x", "degrees": -90},
-    {"axis": "z", "degrees": 90},
-    {"axis": "x", "degrees": 180}
+    {
+      "axis": "x",
+      "degrees": -90
+    },
+    {
+      "axis": "z",
+      "degrees": 90
+    },
+    {
+      "axis": "x",
+      "degrees": 180
+    }
   ],
-  "position": [ -0.222225, -0.34925, 0 ],
+  "position": [
+    -0.222225,
+    -0.34925,
+    0
+  ],
   "cameras": [
     {
       "name": "Daquarius",
       "rotations": [
-        {"axis": "y", "degrees": -30},
-        {"axis": "z", "degrees": 45}
+        {
+          "axis": "y",
+          "degrees": -30
+        },
+        {
+          "axis": "z",
+          "degrees": 45
+        }
       ],
-      "position": [ 0.4064, 0.2794, 0.1905 ],
-      "resolution": [ 640, 480 ],
+      "position": [
+        0.4064,
+        0.2794,
+        0.1905
+      ],
+      "resolution": [
+        640,
+        480
+      ],
       "fov": 70
     },
     {
       "name": "Bartholomew",
       "rotations": [
-        {"axis": "y", "degrees": -30},
-        {"axis": "z", "degrees": 135}
+        {
+          "axis": "y",
+          "degrees": -30
+        },
+        {
+          "axis": "z",
+          "degrees": 135
+        }
       ],
-      "position": [ -0.4064, 0.2794, 0.1905 ],
-      "resolution": [ 640, 480 ],
+      "position": [
+        -0.4064,
+        0.2794,
+        0.1905
+      ],
+      "resolution": [
+        640,
+        480
+      ],
       "fov": 70
     },
     {
       "name": "Tyrone",
       "rotations": [
-        {"axis": "y", "degrees": -30},
-        {"axis": "z", "degrees": 225}
+        {
+          "axis": "y",
+          "degrees": -30
+        },
+        {
+          "axis": "z",
+          "degrees": 225
+        }
       ],
-      "position": [ -0.4064, -0.2794, 0.1905 ],
-      "resolution": [ 640, 480 ],
+      "position": [
+        -0.4064,
+        -0.2794,
+        0.1905
+      ],
+      "resolution": [
+        640,
+        480
+      ],
       "fov": 70
     },
     {
       "name": "Cornelius",
       "rotations": [
-        {"axis": "y", "degrees": -30},
-        {"axis": "z", "degrees": 315}
+        {
+          "axis": "y",
+          "degrees": -30
+        },
+        {
+          "axis": "z",
+          "degrees": 315
+        }
       ],
-      "position": [ 0.4064, -0.2794, 0.1905 ],
-      "resolution": [ 640, 480 ],
+      "position": [
+        0.4064,
+        -0.2794,
+        0.1905
+      ],
+      "resolution": [
+        640,
+        480
+      ],
       "fov": 70
     }
   ]
