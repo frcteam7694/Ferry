@@ -34,7 +34,7 @@ public class VisionConstants {
   public static final String pv0c1 = "Bartholomew";
 
   private static final double frontModulePosition = Units.inchesToMeters((35.0 / 2) - 1.5);
-  private static final double rightModulePosition = -Units.inchesToMeters((25.0 / 2) - 1.5);
+  private static final double leftModulePosition = Units.inchesToMeters((25.0 / 2) - 1.5);
   private static final double upModulePosition = Units.inchesToMeters(7.5); // +z
   private static final double upModulePitch = -Math.PI / 6;
 
@@ -43,13 +43,13 @@ public class VisionConstants {
   public static final Transform3d pv0c0Pos =
       new Transform3d(
           frontModulePosition,
-          rightModulePosition,
+          -leftModulePosition,
           upModulePosition,
           new Rotation3d(0.0, upModulePitch, 7 * Math.PI / 4));
   public static final Transform3d pv0c1Pos =
       new Transform3d(
           -frontModulePosition,
-          -rightModulePosition,
+          leftModulePosition,
           upModulePosition,
           new Rotation3d(0.0, upModulePitch, 3 * Math.PI / 4));
 

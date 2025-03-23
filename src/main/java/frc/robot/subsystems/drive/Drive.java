@@ -29,7 +29,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants;
 import frc.robot.Constants.Mode;
-import frc.robot.subsystems.vision.VisionConstants;
+import frc.robot.Robot;
 import frc.robot.util.LocalADStarAK;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -279,22 +279,19 @@ public class Drive extends SubsystemBase {
   /** Returns the current odometry pose. */
   @AutoLogOutput(key = "Odometry/Robot")
   public Pose2d getPose() {
-    Pose2d pos = new Pose2d(poseEstimator.getEstimatedPosition().getTranslation(), getRotation());
-    Pose3d pos3 = new Pose3d(pos);
-    Pose3d c0 = pos3.transformBy(VisionConstants.pv0c0Pos);
-    Pose3d c1 = pos3.transformBy(VisionConstants.pv0c1Pos);
-    Logger.recordOutput("Vision/c0Pos", c0);
-    Logger.recordOutput("Vision/c1Pos", c1);
-    return pos;
+    return new Pose2d(poseEstimator.getEstimatedPosition().getTranslation(), getRotation());
   }
 
   /** Returns the current odometry rotation. */
   public Rotation2d getRotation() {
-    return gyroInputs.yawPosition;
+    return Robot.isReal()
+        ? gyroInputs.yawPosition
+        : poseEstimator.getEstimatedPosition().getRotation();
   }
 
   public void resetGyro() {
-    gyroIO.resetGyro();
+    if (Robot.isReal()) gyroIO.resetGyro();
+    else poseEstimator.resetRotation(Rotation2d.kZero);
   }
 
   /** Resets the current odometry pose. */
