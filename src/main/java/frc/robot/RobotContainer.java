@@ -76,7 +76,7 @@ public class RobotContainer {
                 new ModuleIOSpark(2),
                 new ModuleIOSpark(3));
         vision =
-            Constants.currentRobot == Constants.Robots.Terry
+            Constants.currentRobot == Constants.Robots.Ferry
                 ? new Vision(
                     drive::getRotation,
                     drive::addVisionMeasurement,

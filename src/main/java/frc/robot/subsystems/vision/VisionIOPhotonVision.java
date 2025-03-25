@@ -9,7 +9,6 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
-import org.littletonrobotics.junction.Logger;
 import org.photonvision.PhotonCamera;
 import org.photonvision.targeting.PhotonPipelineResult;
 import org.photonvision.targeting.PhotonTrackedTarget;
@@ -49,11 +48,9 @@ public class VisionIOPhotonVision implements VisionIO {
         // Actually use data (why wasn't this happening already?)
         PhotonTrackedTarget target = result.getBestTarget();
         Pose3d tagPose = aprilTagLayout.getTagPose(target.getFiducialId()).orElse(new Pose3d());
-        Logger.recordOutput("tagPose", tagPose);
 
-        Transform3d bestTagToCamera = target.bestCameraToTarget;
-        Pose3d bestRobotPose =
-            tagPose.plus(bestTagToCamera.inverse()).plus(robotToCamera.inverse());
+        Transform3d cameraToTag = target.bestCameraToTarget;
+        Pose3d bestRobotPose = tagPose.plus(cameraToTag.inverse()).plus(robotToCamera.inverse());
 
         // Add observation
         poseObservations.add(
@@ -62,7 +59,7 @@ public class VisionIOPhotonVision implements VisionIO {
                 bestRobotPose, // 3D pose estimate
                 target.poseAmbiguity, // Ambiguity
                 1, // Tag count
-                bestTagToCamera.getTranslation().getNorm(), // Average tag distance
+                cameraToTag.getTranslation().getNorm(), // Average tag distance
                 PoseObservationType.PHOTONVISION)); // Observation type
 
         if (VisionConstants.useUnlikelyPVEstimates) {

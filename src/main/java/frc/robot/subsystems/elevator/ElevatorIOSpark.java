@@ -79,7 +79,10 @@ public class ElevatorIOSpark implements ElevatorIO {
 
   @Override
   public void resetAtBotton(Elevator elevator) {
-    if (leftSpark.get() < 0 && leftSpark.getOutputCurrent() == 0 && elevator.getEncoder() < 8) {
+    if (elevator.getEncoder() < 0
+        || (leftSpark.get() < 0
+            && leftSpark.getOutputCurrent() == 0
+            && elevator.getEncoder() < 8)) {
       zeroEncoder(elevator);
     }
   }
