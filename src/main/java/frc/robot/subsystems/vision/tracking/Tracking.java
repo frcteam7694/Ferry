@@ -23,13 +23,13 @@ import org.littletonrobotics.junction.Logger;
 
 public class Tracking extends SubsystemBase {
   private final Supplier<Rotation2d> gyro;
-  private final VisionConsumer consumer;
+  private final TrackingConsumer consumer;
   private final TrackingIO[] io;
   private final TrackingIOInputsAutoLogged[] inputs;
   private final Alert[] disconnectedAlerts;
   private List<Pose3d> allPoses;
 
-  public Tracking(Supplier<Rotation2d> gyro, VisionConsumer consumer, TrackingIO... io) {
+  public Tracking(Supplier<Rotation2d> gyro, TrackingConsumer consumer, TrackingIO... io) {
     this.gyro = gyro;
     this.consumer = consumer;
     this.io = io;
@@ -44,24 +44,15 @@ public class Tracking extends SubsystemBase {
     this.disconnectedAlerts = new Alert[io.length];
     for (int i = 0; i < inputs.length; i++) {
       disconnectedAlerts[i] =
-          new Alert("Vision camera " + i + " is disconnected.", AlertType.kWarning);
+          new Alert("Tracking camera " + i + " is disconnected.", AlertType.kWarning);
     }
-  }
-
-  /**
-   * Returns the X angle to the best target, which can be used for simple servoing with tracking.
-   *
-   * @param cameraIndex The index of the camera to use.
-   */
-  public Rotation2d getTargetX(int cameraIndex) {
-    return inputs[cameraIndex].latestTargetObservation.tx();
   }
 
   @Override
   public void periodic() {
     for (int i = 0; i < io.length; i++) {
       io[i].updateInputs(inputs[i]);
-      Logger.processInputs("Vision/Camera" + i, inputs[i]);
+      Logger.processInputs("Tracking/Camera" + i, inputs[i]);
     }
 
     // Initialize logging values
@@ -128,16 +119,16 @@ public class Tracking extends SubsystemBase {
 
       // Log camera datadata
       Logger.recordOutput(
-          "Vision/Camera" + cameraIndex + "/TagPoses",
+          "Tracking/Camera" + cameraIndex + "/TagPoses",
           tagPoses.toArray(new Pose3d[tagPoses.size()]));
       Logger.recordOutput(
-          "Vision/Camera" + cameraIndex + "/RobotPoses",
+          "Tracking/Camera" + cameraIndex + "/RobotPoses",
           robotPoses.toArray(new Pose3d[robotPoses.size()]));
       Logger.recordOutput(
-          "Vision/Camera" + cameraIndex + "/RobotPosesAccepted",
+          "Tracking/Camera" + cameraIndex + "/RobotPosesAccepted",
           robotPosesAccepted.toArray(new Pose3d[robotPosesAccepted.size()]));
       Logger.recordOutput(
-          "Vision/Camera" + cameraIndex + "/RobotPosesRejected",
+          "Tracking/Camera" + cameraIndex + "/RobotPosesRejected",
           robotPosesRejected.toArray(new Pose3d[robotPosesRejected.size()]));
       allTagPoses.addAll(tagPoses);
       allRobotPoses.addAll(robotPoses);
@@ -147,14 +138,14 @@ public class Tracking extends SubsystemBase {
 
     // Log summary data
     Logger.recordOutput(
-        "Vision/Summary/TagPoses", allTagPoses.toArray(new Pose3d[allTagPoses.size()]));
+        "Tracking/Summary/TagPoses", allTagPoses.toArray(new Pose3d[allTagPoses.size()]));
     Logger.recordOutput(
-        "Vision/Summary/RobotPoses", allRobotPoses.toArray(new Pose3d[allRobotPoses.size()]));
+        "Tracking/Summary/RobotPoses", allRobotPoses.toArray(new Pose3d[allRobotPoses.size()]));
     Logger.recordOutput(
-        "Vision/Summary/RobotPosesAccepted",
+        "Tracking/Summary/RobotPosesAccepted",
         allRobotPosesAccepted.toArray(new Pose3d[allRobotPosesAccepted.size()]));
     Logger.recordOutput(
-        "Vision/Summary/RobotPosesRejected",
+        "Tracking/Summary/RobotPosesRejected",
         allRobotPosesRejected.toArray(new Pose3d[allRobotPosesRejected.size()]));
     allPoses = allRobotPoses;
   }
@@ -186,7 +177,7 @@ public class Tracking extends SubsystemBase {
   }
 
   @FunctionalInterface
-  public interface VisionConsumer {
+  public interface TrackingConsumer {
     void accept(
         Pose2d visionRobotPoseMeters,
         double timestampSeconds,
