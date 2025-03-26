@@ -1,6 +1,6 @@
-package frc.robot.subsystems.vision;
+package frc.robot.subsystems.vision.alignment;
 
-import static frc.robot.subsystems.vision.VisionConstants.*;
+import static frc.robot.subsystems.vision.VisionConstants.aprilTagLayout;
 
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.VecBuilder;
@@ -12,7 +12,6 @@ import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.subsystems.vision.VisionIO.PoseObservationType;
 import frc.robot.util.RotationUtil;
 import java.util.LinkedList;
 import java.util.List;
@@ -20,23 +19,23 @@ import java.util.function.Supplier;
 import org.jetbrains.annotations.Nullable;
 import org.littletonrobotics.junction.Logger;
 
-public class Vision extends SubsystemBase {
+public class Alignment extends SubsystemBase {
   private final Supplier<Rotation2d> gyro;
   private final VisionConsumer consumer;
-  private final VisionIO[] io;
-  private final VisionIOInputsAutoLogged[] inputs;
+  private final AlignmentIO[] io;
+  private final AlignmentIOInputsAutoLogged[] inputs;
   private final Alert[] disconnectedAlerts;
   private List<Pose3d> allPoses;
 
-  public Vision(Supplier<Rotation2d> gyro, VisionConsumer consumer, VisionIO... io) {
+  public Alignment(Supplier<Rotation2d> gyro, VisionConsumer consumer, AlignmentIO... io) {
     this.gyro = gyro;
     this.consumer = consumer;
     this.io = io;
 
     // Initialize inputs
-    this.inputs = new VisionIOInputsAutoLogged[io.length];
+    this.inputs = new AlignmentIOInputsAutoLogged[io.length];
     for (int i = 0; i < inputs.length; i++) {
-      inputs[i] = new VisionIOInputsAutoLogged();
+      inputs[i] = new AlignmentIOInputsAutoLogged();
     }
 
     // Initialize disconnected alerts
@@ -48,7 +47,7 @@ public class Vision extends SubsystemBase {
   }
 
   /**
-   * Returns the X angle to the best target, which can be used for simple servoing with vision.
+   * Returns the X angle to the best target, which can be used for simple servoing with tracking.
    *
    * @param cameraIndex The index of the camera to use.
    */
@@ -87,7 +86,7 @@ public class Vision extends SubsystemBase {
       }
 
       // Loop over pose observations
-      for (VisionIO.PoseObservation observation : inputs[cameraIndex].poseObservations) {
+      for (AlignmentIO.PoseObservation observation : inputs[cameraIndex].poseObservations) {
         // Check whether to reject pose
         boolean acceptPose = shouldAccept(observation);
 
@@ -107,22 +106,10 @@ public class Vision extends SubsystemBase {
         // Calculate standard deviations
         double stdDevFactor =
             Math.pow(observation.averageTagDistance(), 2.0) / observation.tagCount();
-        double linearStdDev = linearStdDevBaseline * stdDevFactor;
-        double angularStdDev = angularStdDevBaseline * stdDevFactor;
-        if (observation.type() == PoseObservationType.MEGATAG_2) {
-          linearStdDev *= linearStdDevMegatag2Factor;
-          angularStdDev *= angularStdDevMegatag2Factor;
-        }
-        if (cameraIndex < cameraStdDevFactors.length) {
-          linearStdDev *= cameraStdDevFactors[cameraIndex];
-          angularStdDev *= cameraStdDevFactors[cameraIndex];
-        }
 
-        // Send vision observation
+        // Send tracking observation
         consumer.accept(
-            observation.pose().toPose2d(),
-            observation.timestamp(),
-            VecBuilder.fill(linearStdDev, linearStdDev, angularStdDev));
+            observation.pose().toPose2d(), observation.timestamp(), VecBuilder.fill(0, 0, 0));
       }
 
       // Log camera datadata
@@ -158,15 +145,15 @@ public class Vision extends SubsystemBase {
     allPoses = allRobotPoses;
   }
 
-  private boolean shouldAccept(VisionIO.PoseObservation observation) {
+  private boolean shouldAccept(AlignmentIO.PoseObservation observation) {
     if (observation.tagCount() == 0) {
       return false;
     }
     if (!RotationUtil.within(
-        observation.pose().getRotation().toRotation2d(), gyro.get(), maxYawError)) {
+        observation.pose().getRotation().toRotation2d(), gyro.get(), Rotation2d.kZero)) {
       return false;
     }
-    if (Math.abs(observation.pose().getZ()) > maxZError) {
+    if (Math.abs(observation.pose().getZ()) > 5) {
       return false; // Must have realistic Z coordinate
     }
     return (observation.pose().getX() >= 0.0)

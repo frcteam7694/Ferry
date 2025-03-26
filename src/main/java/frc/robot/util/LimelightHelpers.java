@@ -18,7 +18,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * LimelightHelpers provides static methods and classes for interfacing with Limelight vision
+ * LimelightHelpers provides static methods and classes for interfacing with Limelight tracking
  * cameras in FRC. This library supports all Limelight features including AprilTag tracking, Neural
  * Networks, and standard color/retroreflective tracking.
  */
@@ -1200,7 +1200,8 @@ public class LimelightHelpers {
   }
 
   /**
-   * Gets the {@link Pose2d} for easy use with Odometry vision pose estimator (addVisionMeasurement)
+   * Gets the {@link Pose2d} for easy use with Odometry tracking pose estimator
+   * (addVisionMeasurement)
    */
   public static Pose2d getBotPose2d_wpiBlue(String limelightName) {
 
@@ -1226,7 +1227,8 @@ public class LimelightHelpers {
   }
 
   /**
-   * Gets the {@link Pose2d} for easy use with Odometry vision pose estimator (addVisionMeasurement)
+   * Gets the {@link Pose2d} for easy use with Odometry tracking pose estimator
+   * (addVisionMeasurement)
    */
   public static Pose2d getBotPose2d_wpiRed(String limelightName) {
 
@@ -1251,7 +1253,8 @@ public class LimelightHelpers {
   }
 
   /**
-   * Gets the {@link Pose2d} for easy use with Odometry vision pose estimator (addVisionMeasurement)
+   * Gets the {@link Pose2d} for easy use with Odometry tracking pose estimator
+   * (addVisionMeasurement)
    */
   public static Pose2d getBotPose2d(String limelightName) {
 

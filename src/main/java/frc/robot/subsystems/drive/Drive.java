@@ -30,7 +30,6 @@ import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants;
 import frc.robot.Constants.Mode;
 import frc.robot.Robot;
-import frc.robot.RobotContainer;
 import frc.robot.util.LocalADStarAK;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -280,7 +279,7 @@ public class Drive extends SubsystemBase {
   /** Returns the current odometry pose. */
   @AutoLogOutput(key = "Odometry/Robot")
   public Pose2d getPose() {
-      return new Pose2d(poseEstimator.getEstimatedPosition().getTranslation(), getRotation());
+    return new Pose2d(poseEstimator.getEstimatedPosition().getTranslation(), getRotation());
   }
 
   /** Returns the current odometry rotation. */
@@ -301,7 +300,7 @@ public class Drive extends SubsystemBase {
     poseEstimator.resetPosition(rawGyroRotation, getModulePositions(), pose);
   }
 
-  /** Adds a new timestamped vision measurement. */
+  /** Adds a new timestamped tracking measurement. */
   public void addVisionMeasurement(
       Pose2d visionRobotPoseMeters,
       double timestampSeconds,
