@@ -1,10 +1,11 @@
-package frc.robot.subsystems.vision.tracking;
+package frc.robot.subsystems.vision;
 
-import static frc.robot.subsystems.vision.VisionConstants.aprilTagLayout;
+import static frc.robot.subsystems.vision.Vision.aprilTagLayout;
 
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform3d;
+import frc.robot.subsystems.vision.tracking.TrackingConstants;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -14,7 +15,7 @@ import org.photonvision.targeting.PhotonPipelineResult;
 import org.photonvision.targeting.PhotonTrackedTarget;
 
 /** IO implementation for real PhotonVision hardware. */
-public class TrackingIOPhotonVision implements TrackingIO {
+public class VisionIOPhotonVision implements VisionIO {
   protected final PhotonCamera camera;
   protected final Transform3d robotToCamera;
 
@@ -24,13 +25,13 @@ public class TrackingIOPhotonVision implements TrackingIO {
    * @param name The configured name of the camera.
    * @param robotToCamera The 3D position of the camera relative to the robot.
    */
-  public TrackingIOPhotonVision(String name, Transform3d robotToCamera) {
+  public VisionIOPhotonVision(String name, Transform3d robotToCamera) {
     camera = new PhotonCamera(name);
     this.robotToCamera = robotToCamera;
   }
 
   @Override
-  public void updateInputs(TrackingIOInputs inputs) {
+  public void updateInputs(VisionIOInputs inputs) {
     inputs.connected = camera.isConnected();
 
     // Read new camera observations
@@ -43,7 +44,8 @@ public class TrackingIOPhotonVision implements TrackingIO {
         inputs.latestTargetObservation =
             new TargetObservation(
                 Rotation2d.fromDegrees(result.getBestTarget().getYaw()),
-                Rotation2d.fromDegrees(result.getBestTarget().getPitch()));
+                Rotation2d.fromDegrees(result.getBestTarget().getPitch()),
+                result.getBestTarget().fiducialId);
 
         // Actually use data (why wasn't this happening already?)
         PhotonTrackedTarget target = result.getBestTarget();
@@ -76,7 +78,8 @@ public class TrackingIOPhotonVision implements TrackingIO {
                   PoseObservationType.PHOTONVISION)); // Observation type
         }
       } else {
-        inputs.latestTargetObservation = new TargetObservation(new Rotation2d(), new Rotation2d());
+        inputs.latestTargetObservation =
+            new TargetObservation(new Rotation2d(), new Rotation2d(), -1);
       }
 
       // Add pose observation

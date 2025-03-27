@@ -1,6 +1,8 @@
 package frc.robot;
 
 import static frc.robot.subsystems.elevator.ElevatorConstants.*;
+import static frc.robot.subsystems.vision.alignment.AlignmentConstants.ll;
+import static frc.robot.subsystems.vision.alignment.AlignmentConstants.llPos;
 import static frc.robot.subsystems.vision.tracking.TrackingConstants.*;
 
 import com.pathplanner.lib.auto.AutoBuilder;
@@ -15,6 +17,7 @@ import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.commands.*;
 import frc.robot.commands.elevator.ElevateCommand;
@@ -33,8 +36,11 @@ import frc.robot.subsystems.elevator.ElevatorIOSpark;
 import frc.robot.subsystems.forklift.Forklift;
 import frc.robot.subsystems.forklift.ForkliftIOSim;
 import frc.robot.subsystems.forklift.ForkliftIOSpark;
+import frc.robot.subsystems.vision.VisionIOLimelight;
+import frc.robot.subsystems.vision.VisionIOPhotonVision;
+import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
+import frc.robot.subsystems.vision.alignment.Alignment;
 import frc.robot.subsystems.vision.tracking.Tracking;
-import frc.robot.subsystems.vision.tracking.TrackingIOPhotonVision;
 import java.io.IOException;
 import org.json.simple.parser.ParseException;
 import org.littletonrobotics.junction.Logger;
@@ -50,6 +56,7 @@ public class RobotContainer {
   // Subsystems
   private final Drive drive;
   private final Tracking tracking;
+  private final Alignment alignment;
   private final Elevator elevator;
   private final Dropper dropper;
   private final Forklift forklift;
@@ -79,9 +86,13 @@ public class RobotContainer {
                 ? new Tracking(
                     drive::getRotation,
                     drive::addVisionMeasurement,
-                    new TrackingIOPhotonVision(pv0c0, pv0c0Pos),
-                    new TrackingIOPhotonVision(pv0c1, pv0c1Pos))
+                    new VisionIOPhotonVision(pv0c0, pv0c0Pos),
+                    new VisionIOPhotonVision(pv0c1, pv0c1Pos))
                 : new Tracking(drive::getRotation, drive::addVisionMeasurement);
+        alignment =
+            Constants.currentRobot == Constants.Robots.Ferry
+                ? new Alignment(drive::getRotation, new VisionIOLimelight(ll, drive::getRotation))
+                : new Alignment(drive::getRotation);
         elevator =
             Constants.currentRobot == Constants.Robots.Ferry
                 ? new Elevator(new ElevatorIOSpark())
@@ -106,7 +117,12 @@ public class RobotContainer {
                 new ModuleIOSim(),
                 new ModuleIOSim(),
                 new ModuleIOSim());
-        tracking = new Tracking(drive::getRotation, drive::addVisionMeasurement);
+        tracking = new Tracking(drive::getRotation, drive::addVisionMeasurement /*,
+                new VisionIOPhotonVisionSim(pv0c0, pv0c0Pos, drive::getPose),
+                new VisionIOPhotonVisionSim(pv0c1, pv0c1Pos, drive::getPose)*/);
+        alignment =
+            new Alignment(
+                drive::getRotation, new VisionIOPhotonVisionSim(ll, llPos, drive::getPose));
         elevator = new Elevator(new ElevatorIOSim());
         dropper = new Dropper(new DropperIOSim());
         forklift = new Forklift(new ForkliftIOSim());
@@ -123,6 +139,7 @@ public class RobotContainer {
                 new ModuleIO() {},
                 new ModuleIO() {});
         tracking = new Tracking(drive::getRotation, drive::addVisionMeasurement);
+        alignment = new Alignment(drive::getRotation);
         elevator = new Elevator(new ElevatorIOSim());
         dropper = new Dropper(new DropperIOSim());
         forklift = new Forklift(new ForkliftIOSim());
@@ -135,7 +152,8 @@ public class RobotContainer {
     NamedCommands.registerCommand("DropLow", AutoCommands.dropL2(elevator, dropper));
     NamedCommands.registerCommand("DropMid", AutoCommands.dropL3(elevator, dropper));
     NamedCommands.registerCommand("DropHigh", AutoCommands.dropL4(elevator, dropper));
-    NamedCommands.registerCommand("Align", DriveCommands.home(drive));
+    NamedCommands.registerCommand(
+        "Align", DriveCommands.home(drive, alignment, new Trigger(() -> true)));
 
     // Set up auto routines
     autoChooser = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());
@@ -201,10 +219,12 @@ public class RobotContainer {
     // Switch to X pattern when X button is pressed
     driverController.x().onTrue(Commands.runOnce(drive::stopWithX, drive));
 
-    driverController.povLeft().onTrue(DriveCommands.home(drive));
+    driverController
+        .povLeft()
+        .onTrue(DriveCommands.home(drive, alignment, driverController.povLeft()));
     driverController
         .povRight()
-        .onTrue(DriveCommands.homeWhileHolding(drive, driverController.povRight()));
+        .onTrue(DriveCommands.homeWhileHolding(drive, alignment, driverController.povRight()));
 
     // Reset gyro to 0° when B button is pressed
     driverController.b().onTrue(Commands.runOnce(drive::resetGyro, drive).ignoringDisable(true));

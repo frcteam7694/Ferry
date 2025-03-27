@@ -1,6 +1,7 @@
-package frc.robot.subsystems.vision.alignment;
+package frc.robot.subsystems.vision;
 
-import static frc.robot.subsystems.vision.VisionConstants.aprilTagLayout;
+import static frc.robot.subsystems.vision.Vision.aprilTagLayout;
+import static frc.robot.subsystems.vision.Vision.visionSim;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Transform3d;
@@ -10,9 +11,7 @@ import org.photonvision.simulation.SimCameraProperties;
 import org.photonvision.simulation.VisionSystemSim;
 
 /** IO implementation for physics sim using PhotonVision simulator. */
-public class AlignmentIOPhotonVisionSim extends AlignmentIOPhotonVision {
-  private static VisionSystemSim visionSim;
-
+public class VisionIOPhotonVisionSim extends VisionIOPhotonVision {
   private final Supplier<Pose2d> poseSupplier;
 
   /**
@@ -21,7 +20,7 @@ public class AlignmentIOPhotonVisionSim extends AlignmentIOPhotonVision {
    * @param name The name of the camera.
    * @param poseSupplier Supplier for the robot pose to use in simulation.
    */
-  public AlignmentIOPhotonVisionSim(
+  public VisionIOPhotonVisionSim(
       String name, Transform3d robotToCamera, Supplier<Pose2d> poseSupplier) {
     super(name, robotToCamera);
     this.poseSupplier = poseSupplier;
@@ -38,7 +37,7 @@ public class AlignmentIOPhotonVisionSim extends AlignmentIOPhotonVision {
   }
 
   @Override
-  public void updateInputs(AlignmentIOInputs inputs) {
+  public void updateInputs(VisionIOInputs inputs) {
     visionSim.update(poseSupplier.get());
     super.updateInputs(inputs);
   }

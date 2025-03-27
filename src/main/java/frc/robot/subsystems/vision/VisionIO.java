@@ -1,21 +1,21 @@
-package frc.robot.subsystems.vision.tracking;
+package frc.robot.subsystems.vision;
 
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import org.littletonrobotics.junction.AutoLog;
 
-public interface TrackingIO {
+public interface VisionIO {
   @AutoLog
-  class TrackingIOInputs {
+  class VisionIOInputs {
     public boolean connected = false;
     public TargetObservation latestTargetObservation =
-        new TargetObservation(new Rotation2d(), new Rotation2d());
+        new TargetObservation(new Rotation2d(), new Rotation2d(), -1);
     public PoseObservation[] poseObservations = new PoseObservation[0];
     public int[] tagIds = new int[0];
   }
 
   /** Represents the angle to a simple target, not used for pose estimation. */
-  record TargetObservation(Rotation2d tx, Rotation2d ty) {}
+  record TargetObservation(Rotation2d tx, Rotation2d ty, int fId) {}
 
   /** Represents a robot pose sample used for pose estimation. */
   record PoseObservation(
@@ -32,5 +32,5 @@ public interface TrackingIO {
     PHOTONVISION
   }
 
-  default void updateInputs(TrackingIOInputs inputs) {}
+  default void updateInputs(VisionIOInputs inputs) {}
 }

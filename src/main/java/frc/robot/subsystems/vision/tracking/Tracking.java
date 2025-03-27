@@ -1,6 +1,6 @@
 package frc.robot.subsystems.vision.tracking;
 
-import static frc.robot.subsystems.vision.VisionConstants.aprilTagLayout;
+import static frc.robot.subsystems.vision.Vision.aprilTagLayout;
 import static frc.robot.subsystems.vision.tracking.TrackingConstants.*;
 
 import edu.wpi.first.math.Matrix;
@@ -13,7 +13,9 @@ import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.subsystems.vision.tracking.TrackingIO.PoseObservationType;
+import frc.robot.subsystems.vision.VisionIO;
+import frc.robot.subsystems.vision.VisionIO.PoseObservationType;
+import frc.robot.subsystems.vision.VisionIOInputsAutoLogged;
 import frc.robot.util.RotationUtil;
 import java.util.LinkedList;
 import java.util.List;
@@ -24,20 +26,20 @@ import org.littletonrobotics.junction.Logger;
 public class Tracking extends SubsystemBase {
   private final Supplier<Rotation2d> gyro;
   private final TrackingConsumer consumer;
-  private final TrackingIO[] io;
-  private final TrackingIOInputsAutoLogged[] inputs;
+  private final VisionIO[] io;
+  private final VisionIOInputsAutoLogged[] inputs;
   private final Alert[] disconnectedAlerts;
   private List<Pose3d> allPoses;
 
-  public Tracking(Supplier<Rotation2d> gyro, TrackingConsumer consumer, TrackingIO... io) {
+  public Tracking(Supplier<Rotation2d> gyro, TrackingConsumer consumer, VisionIO... io) {
     this.gyro = gyro;
     this.consumer = consumer;
     this.io = io;
 
     // Initialize inputs
-    this.inputs = new TrackingIOInputsAutoLogged[io.length];
+    this.inputs = new VisionIOInputsAutoLogged[io.length];
     for (int i = 0; i < inputs.length; i++) {
-      inputs[i] = new TrackingIOInputsAutoLogged();
+      inputs[i] = new VisionIOInputsAutoLogged();
     }
 
     // Initialize disconnected alerts
@@ -79,7 +81,7 @@ public class Tracking extends SubsystemBase {
       }
 
       // Loop over pose observations
-      for (TrackingIO.PoseObservation observation : inputs[cameraIndex].poseObservations) {
+      for (VisionIO.PoseObservation observation : inputs[cameraIndex].poseObservations) {
         // Check whether to reject pose
         boolean acceptPose = shouldAccept(observation);
 
@@ -150,7 +152,7 @@ public class Tracking extends SubsystemBase {
     allPoses = allRobotPoses;
   }
 
-  private boolean shouldAccept(TrackingIO.PoseObservation observation) {
+  private boolean shouldAccept(VisionIO.PoseObservation observation) {
     if (observation.tagCount() == 0) {
       return false;
     }

@@ -4,10 +4,7 @@ import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.filter.SlewRateLimiter;
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Transform2d;
-import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.geometry.*;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
@@ -18,7 +15,9 @@ import edu.wpi.first.wpilibj2.command.*;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.DriveConstants;
-import frc.robot.util.LimelightHelpers;
+import frc.robot.subsystems.vision.Vision;
+import frc.robot.subsystems.vision.alignment.Alignment;
+import frc.robot.util.RotationUtil;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.LinkedList;
@@ -153,26 +152,52 @@ public class DriveCommands {
         .beforeStarting(() -> angleController.reset(drive.getRotation().getRadians()));
   }
 
-  public static Command home(Drive drive) {
-    return new SequentialCommandGroup(
-        new ParallelRaceGroup(lockIn(drive), new WaitCommand(2)),
-        new ParallelRaceGroup(forward(drive), new WaitCommand(1.5)));
+  public static Command home(Drive drive, Alignment alignment, Trigger end) {
+    return new ParallelRaceGroup(
+        new SequentialCommandGroup(
+            new ParallelRaceGroup(
+                lockIn(drive, alignment, true),
+                new WaitUntilCommand(() -> alignment.getTarget(0).fId() == -1)),
+            new ParallelRaceGroup(forward(drive), new WaitCommand(1))),
+        new WaitUntilCommand(() -> !end.getAsBoolean()));
   }
 
-  public static Command homeWhileHolding(Drive drive, Trigger end) {
-    return new ParallelRaceGroup(lockIn(drive), new WaitUntilCommand(() -> !end.getAsBoolean()));
+  public static Command homeWhileHolding(Drive drive, Alignment alignment, Trigger end) {
+    return new ParallelRaceGroup(
+        lockIn(drive, alignment, true), new WaitUntilCommand(() -> !end.getAsBoolean()));
   }
 
-  public static Command lockIn(Drive drive) {
-    var pid = new PIDController(.15, .05, .02);
+  public static Command lockIn(Drive drive, Alignment alignment, boolean rotateAndHone) {
+    var xController = new PIDController(.15, .05, .02);
+    var angleController =
+        new ProfiledPIDController(
+            ANGLE_KP,
+            0.0,
+            ANGLE_KD,
+            new TrapezoidProfile.Constraints(ANGLE_MAX_VELOCITY / 2, ANGLE_MAX_ACCELERATION));
+    angleController.enableContinuousInput(-Math.PI, Math.PI);
     return Commands.run(
         () -> {
+          var target = alignment.getTarget(0);
           // Get linear velocity
           Translation2d linearVelocity =
               getLinearVelocityFromJoysticks(
-                  Math.min(1, -pid.calculate(LimelightHelpers.getTX(""))), 0, true);
+                  Math.min(1, -xController.calculate(target.tx().getDegrees())),
+                  rotateAndHone ? 1 : 0,
+                  true);
 
           double omega = 0;
+          if (rotateAndHone) {
+            var pos =
+                Vision.aprilTagLayout.getTagPose(target.fId()).orElse(new Pose3d(new Pose2d()));
+            if (pos.getZ() > 0.5) {
+              var ideal = pos.toPose2d().getRotation().plus(Rotation2d.kCCW_90deg);
+              if (RotationUtil.within(drive.getRotation(), ideal, Rotation2d.fromDegrees(25))) {
+                omega =
+                    angleController.calculate(drive.getRotation().getRadians(), ideal.getRadians());
+              }
+            }
+          }
 
           // Convert to field relative speeds & send command
           ChassisSpeeds speeds =
