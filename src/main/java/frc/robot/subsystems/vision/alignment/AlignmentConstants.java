@@ -6,7 +6,7 @@ import edu.wpi.first.math.util.Units;
 
 public class AlignmentConstants {
 
-  public static final String ll = "mimeknight";
+  public static final String ll = "limelight";
   public static final Transform3d llPos =
       new Transform3d(
           Units.inchesToMeters(9.5), // (35.0 / 2) - 8.0

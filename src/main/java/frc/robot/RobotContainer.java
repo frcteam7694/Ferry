@@ -69,6 +69,13 @@ public class RobotContainer {
   // Dashboard inputs
   private final LoggedDashboardChooser<Command> autoChooser;
 
+  private SwerveModuleState[] startingAutoWheels = {
+    new SwerveModuleState(0, Rotation2d.kCW_90deg),
+    new SwerveModuleState(0, Rotation2d.kCW_90deg),
+    new SwerveModuleState(0, Rotation2d.kCW_90deg),
+    new SwerveModuleState(0, Rotation2d.kCW_90deg)
+  };
+
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
     switch (Constants.currentMode) {
@@ -152,6 +159,14 @@ public class RobotContainer {
     NamedCommands.registerCommand("DropLow", AutoCommands.dropL2(elevator, dropper));
     NamedCommands.registerCommand("DropMid", AutoCommands.dropL3(elevator, dropper));
     NamedCommands.registerCommand("DropHigh", AutoCommands.dropL4(elevator, dropper));
+
+    NamedCommands.registerCommand("GoDown", AutoCommands.goL0(elevator));
+    NamedCommands.registerCommand("GoTrough", AutoCommands.goL1(elevator));
+    NamedCommands.registerCommand("GoLow", AutoCommands.goL2(elevator));
+    NamedCommands.registerCommand("GoMid", AutoCommands.goL3(elevator));
+    NamedCommands.registerCommand("GoHigh", AutoCommands.goL4(elevator));
+
+    NamedCommands.registerCommand("Drop", DropperCommands.drop(dropper));
     NamedCommands.registerCommand(
         "Align", DriveCommands.home(drive, alignment, new Trigger(() -> true)));
 
@@ -192,8 +207,10 @@ public class RobotContainer {
     drive.setDefaultCommand(
         DriveCommands.joystickDrive(
             drive,
-            driverController.leftTrigger(),
-            driverController.rightTrigger(),
+            driverController.povRight(),
+            () ->
+                (1 - driverController.getLeftTriggerAxis() * .5)
+                    * (1 - driverController.getRightTriggerAxis() * .5),
             () -> -driverController.getLeftY(),
             () -> -driverController.getLeftX(),
             () -> -driverController.getRightX()));
@@ -204,6 +221,10 @@ public class RobotContainer {
         .whileTrue(
             DriveCommands.joystickDriveAtAngle(
                 drive,
+                driverController.povRight(),
+                () ->
+                    (1 - driverController.getLeftTriggerAxis() * .5)
+                        * (1 - driverController.getRightTriggerAxis() * .5),
                 () -> -driverController.getLeftY(),
                 () -> -driverController.getLeftX(),
                 () -> Rotation2d.kZero));
@@ -212,6 +233,10 @@ public class RobotContainer {
         .whileTrue(
             DriveCommands.joystickDriveAtAngle(
                 drive,
+                driverController.povRight(),
+                () ->
+                    (1 - driverController.getLeftTriggerAxis() * .5)
+                        * (1 - driverController.getRightTriggerAxis() * .5),
                 () -> -driverController.getLeftY(),
                 () -> -driverController.getLeftX(),
                 () -> Rotation2d.k180deg));
@@ -221,12 +246,11 @@ public class RobotContainer {
 
     driverController
         .povLeft()
-        .onTrue(DriveCommands.home(drive, alignment, driverController.povLeft()));
-    driverController
-        .povRight()
-        .onTrue(DriveCommands.homeWhileHolding(drive, alignment, driverController.povRight()));
+        .onTrue(DriveCommands.homeWhileHolding(drive, alignment, driverController.povLeft()));
 
-    // Reset gyro to 0° when B button is pressed
+    driverController.povUp().onTrue(DriveCommands.setStates(drive, () -> startingAutoWheels));
+
+    // Reset gyro to 0° when B button is pressed
     driverController.b().onTrue(Commands.runOnce(drive::resetGyro, drive).ignoringDisable(true));
 
     // Elevator
@@ -308,6 +332,7 @@ public class RobotContainer {
           new SwerveModuleState(modules[2].speedMetersPerSecond, modules[2].angle),
           new SwerveModuleState(modules[3].speedMetersPerSecond, modules[3].angle)
         };
+    startingAutoWheels = wpiModules;
     Logger.recordOutput("StartingAutoWheels", wpiModules);
   }
 }

@@ -29,4 +29,28 @@ public class AutoCommands {
         .andThen(DropperCommands.drop(dropper))
         .andThen(ElevateCommand.create(elevator, ElevatorConstants.level0));
   }
+
+  public static Command goL0(Elevator elevator) {
+    return goToLevel(elevator, ElevatorConstants.level0);
+  }
+
+  public static Command goL1(Elevator elevator) {
+    return goToLevel(elevator, ElevatorConstants.level1);
+  }
+
+  public static Command goL2(Elevator elevator) {
+    return goToLevel(elevator, ElevatorConstants.level2);
+  }
+
+  public static Command goL3(Elevator elevator) {
+    return goToLevel(elevator, ElevatorConstants.level3);
+  }
+
+  public static Command goL4(Elevator elevator) {
+    return goToLevel(elevator, ElevatorConstants.level4);
+  }
+
+  private static Command goToLevel(Elevator elevator, int level) {
+    return ElevateCommand.create(elevator, level);
+  }
 }

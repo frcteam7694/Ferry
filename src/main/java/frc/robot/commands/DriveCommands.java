@@ -6,6 +6,7 @@ import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.*;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -38,11 +39,11 @@ public class DriveCommands {
 
   private DriveCommands() {}
 
-  private static Translation2d getLinearVelocityFromJoysticks(double x, double y, boolean slow) {
+  private static Translation2d getLinearVelocityFromJoysticks(double x, double y, double brake) {
     // Apply deadband
     double linearMagnitude = MathUtil.applyDeadband(Math.hypot(x, y), DEADBAND);
     Rotation2d linearDirection = new Rotation2d(Math.atan2(y, x));
-    if (slow) linearMagnitude *= .25;
+    linearMagnitude *= brake;
 
     // Square magnitude for more precise control
     linearMagnitude = linearMagnitude * linearMagnitude;
@@ -58,8 +59,8 @@ public class DriveCommands {
    */
   public static Command joystickDrive(
       Drive drive,
-      Trigger slow1,
-      Trigger slow2,
+      Trigger noFod,
+      DoubleSupplier brake,
       DoubleSupplier xSupplier,
       DoubleSupplier ySupplier,
       DoubleSupplier omegaSupplier) {
@@ -67,16 +68,17 @@ public class DriveCommands {
         () -> {
           // Get linear velocity
           Translation2d linearVelocity =
-              getLinearVelocityFromJoysticks(
-                  xSupplier.getAsDouble(),
-                  ySupplier.getAsDouble(),
-                  slow1.getAsBoolean() || slow2.getAsBoolean());
+              noFod.getAsBoolean()
+                  ? getLinearVelocityFromJoysticks(
+                      -ySupplier.getAsDouble(), xSupplier.getAsDouble(), brake.getAsDouble())
+                  : getLinearVelocityFromJoysticks(
+                      xSupplier.getAsDouble(), ySupplier.getAsDouble(), brake.getAsDouble());
 
           // Apply rotation deadband
           double omega = MathUtil.applyDeadband(omegaSupplier.getAsDouble(), DEADBAND);
 
           // Square rotation value for more precise control
-          omega = Math.copySign(omega * omega, omega);
+          omega = Math.copySign(omega * omega, omega) * brake.getAsDouble();
 
           // Convert to field relative speeds & send command
           ChassisSpeeds speeds =
@@ -84,15 +86,19 @@ public class DriveCommands {
                   linearVelocity.getX() * drive.getMaxLinearSpeedMetersPerSec(),
                   linearVelocity.getY() * drive.getMaxLinearSpeedMetersPerSec(),
                   omega * drive.getMaxAngularSpeedRadPerSec());
-          boolean isFlipped =
-              DriverStation.getAlliance().isPresent()
-                  && DriverStation.getAlliance().get() == Alliance.Red;
-          drive.runVelocity(
-              ChassisSpeeds.fromFieldRelativeSpeeds(
-                  speeds,
-                  isFlipped
-                      ? drive.getRotation().plus(new Rotation2d(Math.PI))
-                      : drive.getRotation()));
+          if (noFod.getAsBoolean()) {
+            drive.runVelocity(speeds);
+          } else {
+            boolean isFlipped =
+                DriverStation.getAlliance().isPresent()
+                    && DriverStation.getAlliance().get() == Alliance.Red;
+            drive.runVelocity(
+                ChassisSpeeds.fromFieldRelativeSpeeds(
+                    speeds,
+                    isFlipped
+                        ? drive.getRotation().plus(new Rotation2d(Math.PI))
+                        : drive.getRotation()));
+          }
         },
         drive);
   }
@@ -104,6 +110,8 @@ public class DriveCommands {
    */
   public static Command joystickDriveAtAngle(
       Drive drive,
+      Trigger noFod,
+      DoubleSupplier brake,
       DoubleSupplier xSupplier,
       DoubleSupplier ySupplier,
       Supplier<Rotation2d> rotationSupplier) {
@@ -122,8 +130,11 @@ public class DriveCommands {
             () -> {
               // Get linear velocity
               Translation2d linearVelocity =
-                  getLinearVelocityFromJoysticks(
-                      xSupplier.getAsDouble(), ySupplier.getAsDouble(), false);
+                  noFod.getAsBoolean()
+                      ? getLinearVelocityFromJoysticks(
+                          -ySupplier.getAsDouble(), xSupplier.getAsDouble(), brake.getAsDouble())
+                      : getLinearVelocityFromJoysticks(
+                          xSupplier.getAsDouble(), ySupplier.getAsDouble(), brake.getAsDouble());
 
               // Calculate angular speed
               double omega =
@@ -136,15 +147,19 @@ public class DriveCommands {
                       linearVelocity.getX() * drive.getMaxLinearSpeedMetersPerSec(),
                       linearVelocity.getY() * drive.getMaxLinearSpeedMetersPerSec(),
                       omega);
-              boolean isFlipped =
-                  DriverStation.getAlliance().isPresent()
-                      && DriverStation.getAlliance().get() == Alliance.Red;
-              drive.runVelocity(
-                  ChassisSpeeds.fromFieldRelativeSpeeds(
-                      speeds,
-                      isFlipped
-                          ? drive.getRotation().plus(new Rotation2d(Math.PI))
-                          : drive.getRotation()));
+              if (noFod.getAsBoolean()) {
+                drive.runVelocity(speeds);
+              } else {
+                boolean isFlipped =
+                    DriverStation.getAlliance().isPresent()
+                        && DriverStation.getAlliance().get() == Alliance.Red;
+                drive.runVelocity(
+                    ChassisSpeeds.fromFieldRelativeSpeeds(
+                        speeds,
+                        isFlipped
+                            ? drive.getRotation().plus(new Rotation2d(Math.PI))
+                            : drive.getRotation()));
+              }
             },
             drive)
 
@@ -182,17 +197,17 @@ public class DriveCommands {
           // Get linear velocity
           Translation2d linearVelocity =
               getLinearVelocityFromJoysticks(
-                  Math.min(1, -xController.calculate(target.tx().getDegrees())),
+                  Math.max(Math.min(1, -xController.calculate(target.tx().getDegrees()) * .4), -1),
                   rotateAndHone ? 1 : 0,
-                  true);
+                  1);
 
           double omega = 0;
           if (rotateAndHone) {
             var pos =
                 Vision.aprilTagLayout.getTagPose(target.fId()).orElse(new Pose3d(new Pose2d()));
-            if (pos.getZ() > 0.5) {
+            if (pos.getZ() < 0.5) {
               var ideal = pos.toPose2d().getRotation().plus(Rotation2d.kCCW_90deg);
-              if (RotationUtil.within(drive.getRotation(), ideal, Rotation2d.fromDegrees(25))) {
+              if (RotationUtil.within(drive.getRotation(), ideal, Rotation2d.fromDegrees(50))) {
                 omega =
                     angleController.calculate(drive.getRotation().getRadians(), ideal.getRadians());
               }
@@ -214,7 +229,7 @@ public class DriveCommands {
     return Commands.run(
         () -> {
           // Get linear velocity
-          Translation2d linearVelocity = getLinearVelocityFromJoysticks(0, 1, true);
+          Translation2d linearVelocity = getLinearVelocityFromJoysticks(0, 1, .4);
 
           double omega = 0;
 
@@ -227,6 +242,10 @@ public class DriveCommands {
           drive.runVelocity(speeds);
         },
         drive);
+  }
+
+  public static Command setStates(Drive drive, Supplier<SwerveModuleState[]> states) {
+    return new RunCommand(() -> drive.setModuleStates(states.get()));
   }
 
   /**
