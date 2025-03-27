@@ -207,7 +207,7 @@ public class RobotContainer {
     drive.setDefaultCommand(
         DriveCommands.joystickDrive(
             drive,
-            driverController.povRight(),
+            driverController.leftBumper().or(driverController.rightBumper()),
             () ->
                 (1 - driverController.getLeftTriggerAxis() * .5)
                     * (1 - driverController.getRightTriggerAxis() * .5),
@@ -221,7 +221,7 @@ public class RobotContainer {
         .whileTrue(
             DriveCommands.joystickDriveAtAngle(
                 drive,
-                driverController.povRight(),
+                driverController.leftBumper().or(driverController.rightBumper()),
                 () ->
                     (1 - driverController.getLeftTriggerAxis() * .5)
                         * (1 - driverController.getRightTriggerAxis() * .5),
@@ -233,7 +233,7 @@ public class RobotContainer {
         .whileTrue(
             DriveCommands.joystickDriveAtAngle(
                 drive,
-                driverController.povRight(),
+                driverController.leftBumper().or(driverController.rightBumper()),
                 () ->
                     (1 - driverController.getLeftTriggerAxis() * .5)
                         * (1 - driverController.getRightTriggerAxis() * .5),
