@@ -2,7 +2,6 @@ package frc.robot.subsystems.vision;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
-import frc.robot.Robot;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -10,21 +9,17 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import org.photonvision.simulation.VisionSystemSim;
 
 public class Vision {
-
-  public static VisionSystemSim visionSim;
 
   // AprilTag layout
   public static final AprilTagFieldLayout aprilTagLayout;
 
   static {
     try {
-      aprilTagLayout =
-          Robot.isReal()
-              ? getFieldFromFile(Path.of("/home/lvuser/deploy/layout.json"))
-              : getFieldFromString();
+      aprilTagLayout = getFieldFromString();
+      //          Robot.isReal()
+      //              ? getFieldFromFile(Path.of("/home/lvuser/deploy/layout.json"))
     } catch (IOException e) {
       throw new RuntimeException(e);
     }

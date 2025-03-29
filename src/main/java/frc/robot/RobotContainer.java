@@ -168,7 +168,9 @@ public class RobotContainer {
 
     NamedCommands.registerCommand("Drop", DropperCommands.drop(dropper));
     NamedCommands.registerCommand(
-        "Align", DriveCommands.home(drive, alignment, new Trigger(() -> true)));
+        "Align", DriveCommands.home(drive, alignment, new Trigger(() -> true), false));
+    NamedCommands.registerCommand(
+        "AlignRot", DriveCommands.home(drive, alignment, new Trigger(() -> true), true));
 
     // Set up auto routines
     autoChooser = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());

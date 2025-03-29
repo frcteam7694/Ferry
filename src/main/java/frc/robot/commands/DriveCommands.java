@@ -18,11 +18,13 @@ import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.DriveConstants;
 import frc.robot.subsystems.vision.Vision;
 import frc.robot.subsystems.vision.alignment.Alignment;
+import frc.robot.util.IntReference;
 import frc.robot.util.RotationUtil;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 
@@ -167,14 +169,9 @@ public class DriveCommands {
         .beforeStarting(() -> angleController.reset(drive.getRotation().getRadians()));
   }
 
-  public static Command home(Drive drive, Alignment alignment, Trigger end) {
+  public static Command home(Drive drive, Alignment alignment, Trigger end, boolean rotate) {
     return new ParallelRaceGroup(
-        new SequentialCommandGroup(
-            new ParallelRaceGroup(
-                lockIn(drive, alignment, true),
-                new WaitUntilCommand(() -> alignment.getTarget(0).fId() == -1)),
-            new ParallelRaceGroup(forward(drive), new WaitCommand(1))),
-        new WaitUntilCommand(() -> !end.getAsBoolean()));
+        lockIn(drive, alignment, rotate), new WaitUntilCommand(() -> !end.getAsBoolean()));
   }
 
   public static Command homeWhileHolding(Drive drive, Alignment alignment, Trigger end) {
@@ -182,7 +179,7 @@ public class DriveCommands {
         lockIn(drive, alignment, true), new WaitUntilCommand(() -> !end.getAsBoolean()));
   }
 
-  public static Command lockIn(Drive drive, Alignment alignment, boolean rotateAndHone) {
+  public static Command lockIn(Drive drive, Alignment alignment, boolean rotate) {
     var xController = new PIDController(.15, .05, .02);
     var angleController =
         new ProfiledPIDController(
@@ -191,45 +188,65 @@ public class DriveCommands {
             ANGLE_KD,
             new TrapezoidProfile.Constraints(ANGLE_MAX_VELOCITY / 2, ANGLE_MAX_ACCELERATION));
     angleController.enableContinuousInput(-Math.PI, Math.PI);
-    return Commands.run(
-        () -> {
-          var target = alignment.getTarget(0);
-          // Get linear velocity
-          Translation2d linearVelocity =
-              getLinearVelocityFromJoysticks(
-                  Math.max(Math.min(1, -xController.calculate(target.tx().getDegrees()) * .4), -1),
-                  rotateAndHone ? 1 : 0,
-                  1);
+    IntReference currentId = new IntReference(-1);
+    return wrapWithAprilTags(
+        Commands.run(
+            () -> {
+              var target = alignment.getTarget(0);
+              // Get linear velocity
+              Translation2d linearVelocity =
+                  getLinearVelocityFromJoysticks(
+                      Math.max(
+                          Math.min(1, -xController.calculate(target.tx().getDegrees()) * .4), -1),
+                      .7,
+                      rotate ? 1 : .6);
 
-          double omega = 0;
-          if (rotateAndHone) {
-            var pos =
-                Vision.aprilTagLayout.getTagPose(target.fId()).orElse(new Pose3d(new Pose2d()));
-            if (pos.getZ() < 0.5) {
-              var ideal = pos.toPose2d().getRotation().plus(Rotation2d.kCCW_90deg);
-              if (RotationUtil.within(drive.getRotation(), ideal, Rotation2d.fromDegrees(50))) {
-                omega =
-                    angleController.calculate(drive.getRotation().getRadians(), ideal.getRadians());
+              double omega = 0;
+              try {
+                if (rotate) {
+                  var pos = Vision.aprilTagLayout.getTagPose(target.fId()).orElseThrow();
+                  if (pos.getZ() < 0.5) {
+                    var ideal = pos.toPose2d().getRotation().plus(Rotation2d.kCCW_90deg);
+                    if (RotationUtil.within(
+                        drive.getRotation(), ideal, Rotation2d.fromDegrees(50))) {
+                      omega =
+                          angleController.calculate(
+                              drive.getRotation().getRadians(), ideal.getRadians());
+                    }
+                  }
+                }
+              } catch (NoSuchElementException ignored) {
               }
-            }
-          }
 
-          // Convert to field relative speeds & send command
-          ChassisSpeeds speeds =
-              new ChassisSpeeds(
-                  linearVelocity.getX() * drive.getMaxLinearSpeedMetersPerSec(),
-                  linearVelocity.getY() * drive.getMaxLinearSpeedMetersPerSec(),
-                  omega * drive.getMaxAngularSpeedRadPerSec());
-          drive.runVelocity(speeds);
-        },
-        drive);
+              // Convert to field relative speeds & send command
+              ChassisSpeeds speeds =
+                  new ChassisSpeeds(
+                      linearVelocity.getX() * drive.getMaxLinearSpeedMetersPerSec(),
+                      linearVelocity.getY() * drive.getMaxLinearSpeedMetersPerSec(),
+                      omega * drive.getMaxAngularSpeedRadPerSec());
+              drive.runVelocity(speeds);
+            },
+            drive,
+            alignment),
+        currentId,
+        drive,
+        alignment);
+  }
+
+  public static Command wrapWithAprilTags(
+      Command in, IntReference currentId, Drive drive, Alignment alignment) {
+    return new SequentialCommandGroup(
+        new InstantCommand(() -> currentId.val(alignment.getTarget(0).fId())),
+        new ParallelRaceGroup(
+            in, new WaitUntilCommand(() -> alignment.getTarget(0).fId() != currentId.val())),
+        new ParallelRaceGroup(forward(drive), new WaitCommand(.3)));
   }
 
   public static Command forward(Drive drive) {
     return Commands.run(
         () -> {
           // Get linear velocity
-          Translation2d linearVelocity = getLinearVelocityFromJoysticks(0, 1, .4);
+          Translation2d linearVelocity = getLinearVelocityFromJoysticks(0, 1, .6);
 
           double omega = 0;
 

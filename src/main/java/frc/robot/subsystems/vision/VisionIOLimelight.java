@@ -9,6 +9,7 @@ import edu.wpi.first.networktables.DoubleArraySubscriber;
 import edu.wpi.first.networktables.DoubleSubscriber;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.RobotController;
+import frc.robot.util.LimelightHelpers;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -26,6 +27,7 @@ public class VisionIOLimelight implements VisionIO {
   private final DoubleSubscriber idSubscriber;
   private final DoubleArraySubscriber megatag1Subscriber;
   private final DoubleArraySubscriber megatag2Subscriber;
+  private final String name;
 
   /**
    * Creates a new VisionIOLimelight.
@@ -34,6 +36,7 @@ public class VisionIOLimelight implements VisionIO {
    * @param rotationSupplier Supplier for the current estimated rotation, used for MegaTag 2.
    */
   public VisionIOLimelight(String name, Supplier<Rotation2d> rotationSupplier) {
+    this.name = name;
     var table = NetworkTableInstance.getDefault().getTable(name);
     this.rotationSupplier = rotationSupplier;
     orientationPublisher = table.getDoubleArrayTopic("robot_orientation_set").publish();
@@ -56,7 +59,7 @@ public class VisionIOLimelight implements VisionIO {
         new TargetObservation(
             Rotation2d.fromDegrees(txSubscriber.get()),
             Rotation2d.fromDegrees(tySubscriber.get()),
-            (int) idSubscriber.get());
+            (int) LimelightHelpers.getFiducialID(name));
 
     // Update orientation for MegaTag 2
     orientationPublisher.accept(
@@ -124,11 +127,13 @@ public class VisionIOLimelight implements VisionIO {
       inputs.poseObservations[i] = poseObservations.get(i);
     }
 
+    tagIds.removeIf(id -> id == 0);
+
     // Save tag IDs to inputs objects
     inputs.tagIds = new int[tagIds.size()];
     int i = 0;
     for (int id : tagIds) {
-      inputs.tagIds[i++] = id;
+      inputs.tagIds[i++] = (int) LimelightHelpers.getFiducialID(name);
     }
   }
 

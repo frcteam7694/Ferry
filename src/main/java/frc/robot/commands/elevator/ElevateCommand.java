@@ -4,8 +4,10 @@ import static frc.robot.subsystems.elevator.ElevatorConstants.maxDistancePerComm
 import static frc.robot.subsystems.elevator.ElevatorConstants.midPoint;
 
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.ParallelRaceGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
+import frc.robot.Robot;
 import frc.robot.subsystems.elevator.Elevator;
 
 public class ElevateCommand extends Command {
@@ -21,6 +23,7 @@ public class ElevateCommand extends Command {
   }
 
   public static Command create(Elevator elevator, int level) {
+    if (Robot.isSimulation()) return Commands.none();
     if (Math.abs(elevator.getEncoder() - level) > maxDistancePerCommand) {
       int point = (level < elevator.getEncoder()) ? level - midPoint : midPoint;
       return new ParallelRaceGroup(new ElevateCommand(elevator, point), new WaitCommand(.15))

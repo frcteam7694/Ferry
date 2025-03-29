@@ -11,9 +11,34 @@
           }
         },
         {
+          "type": "parallel",
+          "data": {
+            "commands": [
+              {
+                "type": "named",
+                "data": {
+                  "name": "Align"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "GoHigh"
+                }
+              }
+            ]
+          }
+        },
+        {
           "type": "named",
           "data": {
-            "name": "DropTrough"
+            "name": "Drop"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "GoDown"
           }
         }
       ]
