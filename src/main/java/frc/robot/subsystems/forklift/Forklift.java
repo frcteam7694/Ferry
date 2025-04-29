@@ -22,8 +22,4 @@ public class Forklift extends SubsystemBase {
   public void drive(double power) {
     io.drive(power);
   }
-
-  public void zeroEncoder() {
-    io.zeroEncoder();
-  }
 }

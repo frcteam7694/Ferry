@@ -35,7 +35,7 @@ import frc.robot.subsystems.elevator.ElevatorIOSim;
 import frc.robot.subsystems.elevator.ElevatorIOSpark;
 import frc.robot.subsystems.forklift.Forklift;
 import frc.robot.subsystems.forklift.ForkliftIOSim;
-import frc.robot.subsystems.forklift.ForkliftIOSpark;
+import frc.robot.subsystems.forklift.ForkliftIOVictorSPX;
 import frc.robot.subsystems.vision.VisionIOLimelight;
 import frc.robot.subsystems.vision.VisionIOPhotonVision;
 import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
@@ -110,7 +110,7 @@ public class RobotContainer {
                 : new Dropper(new DropperIOSim());
         forklift =
             Constants.currentRobot == Constants.Robots.Ferry
-                ? new Forklift(new ForkliftIOSpark())
+                ? new Forklift(new ForkliftIOVictorSPX())
                 : new Forklift(new ForkliftIOSim());
         climber = new Climber(new ClimberIOSpark());
         break;
@@ -195,7 +195,6 @@ public class RobotContainer {
     configureButtonBindings();
 
     elevator.zeroEncoder();
-    forklift.zeroEncoder();
   }
 
   /**
@@ -249,6 +248,10 @@ public class RobotContainer {
     driverController
         .povLeft()
         .onTrue(DriveCommands.homeWhileHolding(drive, alignment, driverController.povLeft()));
+
+    driverController
+        .povDown()
+        .onTrue(DriveCommands.home(drive, alignment, driverController.povLeft(), false));
 
     driverController.povUp().onTrue(DriveCommands.setStates(drive, () -> startingAutoWheels));
 

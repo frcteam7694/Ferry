@@ -180,7 +180,7 @@ public class DriveCommands {
   }
 
   public static Command lockIn(Drive drive, Alignment alignment, boolean rotate) {
-    var xController = new PIDController(.15, .05, .02);
+    var xController = new PIDController(.15, .02, .02);
     var angleController =
         new ProfiledPIDController(
             ANGLE_KP,
@@ -237,16 +237,17 @@ public class DriveCommands {
       Command in, IntReference currentId, Drive drive, Alignment alignment) {
     return new SequentialCommandGroup(
         new InstantCommand(() -> currentId.val(alignment.getTarget(0).fId())),
-        new ParallelRaceGroup(
-            in, new WaitUntilCommand(() -> alignment.getTarget(0).fId() != currentId.val())),
-        new ParallelRaceGroup(forward(drive), new WaitCommand(.3)));
+        new ParallelDeadlineGroup( // new WaitUntilCommand(() -> alignment.getTarget(0).fId() !=
+            // currentId.val())
+            new WaitCommand(2), in),
+        new ParallelDeadlineGroup(new WaitCommand(.3), forward(drive)));
   }
 
   public static Command forward(Drive drive) {
     return Commands.run(
         () -> {
           // Get linear velocity
-          Translation2d linearVelocity = getLinearVelocityFromJoysticks(0, 1, .6);
+          Translation2d linearVelocity = getLinearVelocityFromJoysticks(0, 1, .4);
 
           double omega = 0;
 
